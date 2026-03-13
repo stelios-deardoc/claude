@@ -1,660 +1,353 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useMemo } from 'react';
+import { useCallTracker } from '@/lib/store';
+import {
+  categorizeStatus,
+  getContractValue,
+  hasGuaranteeIssue,
+  isLegalCase,
+  getStandingCategory,
+  getInitials,
+} from '@/lib/call-utils';
+import type { Call } from '@/lib/types';
 
-// ── Types ──────────────────────────────────────────────────────────
-
-interface PendingAccount {
-  id: string;
-  practice: string;
-  contact: string;
-  status: "New" | "In-Progress" | "Scheduled" | "Ride Out";
-  saveType: string;
-  cancelReason: string;
-  monthlySales: number;
-  contractTerm: string;
-  paymentProcessor: string;
-  saveDate: string;
-  paymentStanding: "Good Standing" | "Bad Standing";
-  notes: string;
-  daysSinceActivity: number;
+function formatCurrency(value: number): string {
+  return '$' + value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  time: string;
-  type: "save-call" | "exit-interview" | "internal" | "other";
-  account?: string;
+function getBestDate(call: Call): string {
+  return call.saveDateTime || call.meetingDate || call.importDate || '';
 }
-
-interface EmailItem {
-  id: string;
-  from: string;
-  subject: string;
-  preview: string;
-  time: string;
-  isUrgent: boolean;
-  account?: string;
-}
-
-// ── Mock Data (to be replaced with live API calls) ─────────────────
-
-const mockAccounts: PendingAccount[] = [
-  {
-    id: "1",
-    practice: "Prestige Physicians",
-    contact: "Kira Fenton",
-    status: "In-Progress",
-    saveType: "Retention",
-    cancelReason: "Performance",
-    monthlySales: 1200,
-    contractTerm: "Annual",
-    paymentProcessor: "Stripe",
-    saveDate: "2026-02-18",
-    paymentStanding: "Good Standing",
-    notes: "Call completed 3/3. Pausing social postings, investigating $6000 charge.",
-    daysSinceActivity: 7,
-  },
-  {
-    id: "2",
-    practice: "Oakland Park Dental",
-    contact: "Dr. Ramirez",
-    status: "Scheduled",
-    saveType: "Retention",
-    cancelReason: "Budget",
-    monthlySales: 800,
-    contractTerm: "Annual",
-    paymentProcessor: "Braintree",
-    saveDate: "2026-03-05",
-    paymentStanding: "Good Standing",
-    notes: "Call scheduled for 3/11. Claims budget constraints after expansion.",
-    daysSinceActivity: 5,
-  },
-  {
-    id: "3",
-    practice: "Advanced Dental Arts",
-    contact: "Dr. Patel",
-    status: "New",
-    saveType: "Cancellation",
-    cancelReason: "Competitor",
-    monthlySales: 1500,
-    contractTerm: "Biennial",
-    paymentProcessor: "Stripe",
-    saveDate: "2026-03-08",
-    paymentStanding: "Good Standing",
-    notes: "New cancel request. Says competitor offered lower rate with similar features.",
-    daysSinceActivity: 2,
-  },
-  {
-    id: "4",
-    practice: "Bright Smiles Family",
-    contact: "Dr. Johnson",
-    status: "In-Progress",
-    saveType: "Retention",
-    cancelReason: "CSM Neglect",
-    monthlySales: 950,
-    contractTerm: "Annual",
-    paymentProcessor: "Ratio-Unclear",
-    saveDate: "2026-02-25",
-    paymentStanding: "Good Standing",
-    notes: "Frustrated with lack of CSM support. Two unanswered emails to CSM team.",
-    daysSinceActivity: 13,
-  },
-  {
-    id: "5",
-    practice: "Harmony Health Clinic",
-    contact: "Dr. Williams",
-    status: "Ride Out",
-    saveType: "Cancellation",
-    cancelReason: "Retired",
-    monthlySales: 600,
-    contractTerm: "Annual",
-    paymentProcessor: "Capchase",
-    saveDate: "2026-02-10",
-    paymentStanding: "Good Standing",
-    notes: "Retiring end of April. Riding out contract. No save opportunity.",
-    daysSinceActivity: 28,
-  },
-  {
-    id: "6",
-    practice: "Summit Orthopedics",
-    contact: "Raji Anup",
-    status: "In-Progress",
-    saveType: "Retention",
-    cancelReason: "Performance",
-    monthlySales: 2200,
-    contractTerm: "Biennial",
-    paymentProcessor: "Stripe",
-    saveDate: "2026-03-01",
-    paymentStanding: "Bad Standing",
-    notes: "High-value account. Disputing charges, claims AI chat not working properly.",
-    daysSinceActivity: 9,
-  },
-  {
-    id: "7",
-    practice: "Coastal Dermatology",
-    contact: "Dr. Chen",
-    status: "New",
-    saveType: "Cancellation",
-    cancelReason: "Budget",
-    monthlySales: 750,
-    contractTerm: "Annual",
-    paymentProcessor: "Braintree",
-    saveDate: "2026-03-09",
-    paymentStanding: "Good Standing",
-    notes: "Just came in. No outreach yet.",
-    daysSinceActivity: 1,
-  },
-  {
-    id: "8",
-    practice: "Premier Family Practice",
-    contact: "Dr. Thompson",
-    status: "Scheduled",
-    saveType: "Retention",
-    cancelReason: "None",
-    monthlySales: 1100,
-    contractTerm: "Biennial",
-    paymentProcessor: "Stripe",
-    saveDate: "2026-03-04",
-    paymentStanding: "Good Standing",
-    notes: "Wants to discuss contract terms. Exit interview scheduled 3/12.",
-    daysSinceActivity: 6,
-  },
-];
-
-const mockCalendar: CalendarEvent[] = [
-  { id: "c1", title: "Oakland Park Dental -- Save Call", time: "10:00 AM", type: "save-call", account: "Oakland Park Dental" },
-  { id: "c2", title: "Team Standup", time: "11:30 AM", type: "internal" },
-  { id: "c3", title: "Premier Family -- Exit Interview", time: "2:00 PM", type: "exit-interview", account: "Premier Family Practice" },
-  { id: "c4", title: "Coastal Dermatology -- Intro Call", time: "3:30 PM", type: "save-call", account: "Coastal Dermatology" },
-];
-
-const mockEmails: EmailItem[] = [
-  {
-    id: "e1",
-    from: "Kira Fenton",
-    subject: "RE: Social Media Pause Confirmation",
-    preview: "Hi Stelios, I still haven't seen the $6000 credit reflected on our account...",
-    time: "9:15 AM",
-    isUrgent: true,
-    account: "Prestige Physicians",
-  },
-  {
-    id: "e2",
-    from: "Dr. Patel",
-    subject: "Cancellation Request -- Advanced Dental Arts",
-    preview: "We've decided to move forward with our cancellation. Please process...",
-    time: "8:42 AM",
-    isUrgent: true,
-    account: "Advanced Dental Arts",
-  },
-  {
-    id: "e3",
-    from: "Raji Anup",
-    subject: "RE: Summit Orthopedics Account Review",
-    preview: "Thanks for looking into this. When can we schedule a call to discuss...",
-    time: "Yesterday",
-    isUrgent: false,
-    account: "Summit Orthopedics",
-  },
-];
-
-// ── Utility Components ─────────────────────────────────────────────
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, { bg: string; text: string }> = {
-    New: { bg: "#3b82f620", text: "#60a5fa" },
-    "In-Progress": { bg: "#f59e0b20", text: "#fbbf24" },
-    Scheduled: { bg: "#22c55e20", text: "#4ade80" },
-    "Ride Out": { bg: "#64748b20", text: "#94a3b8" },
-    "Closed Lost": { bg: "#ef444420", text: "#f87171" },
-  };
-  const c = colors[status] || colors["New"];
-  return (
-    <span
-      style={{
-        background: c.bg,
-        color: c.text,
-        padding: "2px 10px",
-        borderRadius: "9999px",
-        fontSize: "12px",
-        fontWeight: 600,
-        whiteSpace: "nowrap",
-      }}
-    >
-      {status}
-    </span>
-  );
-}
-
-function PaymentBadge({ standing }: { standing: string }) {
-  const isBad = standing === "Bad Standing";
-  return (
-    <span
-      style={{
-        color: isBad ? "#f87171" : "#4ade80",
-        fontSize: "12px",
-        fontWeight: 500,
-      }}
-    >
-      {isBad ? "Bad" : "Good"}
-    </span>
-  );
-}
-
-function MetricCard({ label, value, color, sub }: { label: string; value: string | number; color: string; sub?: string }) {
-  return (
-    <div
-      style={{
-        background: "var(--card-bg)",
-        border: "1px solid var(--card-border)",
-        borderRadius: "12px",
-        padding: "20px",
-        flex: 1,
-        minWidth: "160px",
-      }}
-    >
-      <div style={{ fontSize: "13px", color: "var(--muted)", marginBottom: "8px" }}>{label}</div>
-      <div style={{ fontSize: "28px", fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: "12px", color: "var(--muted)", marginTop: "6px" }}>{sub}</div>}
-    </div>
-  );
-}
-
-function EventTypeDot({ type }: { type: string }) {
-  const colors: Record<string, string> = {
-    "save-call": "#3b82f6",
-    "exit-interview": "#f59e0b",
-    internal: "#64748b",
-    other: "#64748b",
-  };
-  return (
-    <span
-      style={{
-        width: "8px",
-        height: "8px",
-        borderRadius: "50%",
-        background: colors[type] || "#64748b",
-        display: "inline-block",
-        marginRight: "8px",
-        flexShrink: 0,
-      }}
-    />
-  );
-}
-
-// ── Main Dashboard ─────────────────────────────────────────────────
 
 export default function Dashboard() {
-  const [filter, setFilter] = useState<"all" | "active" | "stale" | "new">("all");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { calls, openCallModal } = useCallTracker();
 
-  // Derived metrics
-  const activeAccounts = mockAccounts.filter((a) => a.status !== "Ride Out");
-  const mrrAtRisk = mockAccounts.reduce((sum, a) => sum + a.monthlySales, 0);
-  const todaysCalls = mockCalendar.filter((e) => e.type === "save-call" || e.type === "exit-interview").length;
-  const staleAccounts = mockAccounts.filter((a) => a.daysSinceActivity > 7 && a.status !== "Ride Out");
-  const urgentEmails = mockEmails.filter((e) => e.isUrgent).length;
+  const metrics = useMemo(() => {
+    const savedCalls = calls.filter(c => categorizeStatus(c.saveStatus, c.saveType) === 'saved');
+    const lostCalls = calls.filter(c => categorizeStatus(c.saveStatus, c.saveType) === 'lost');
+    const pendingCalls = calls.filter(c => categorizeStatus(c.saveStatus, c.saveType) === 'pending');
 
-  // Filtered accounts
-  const filteredAccounts = mockAccounts.filter((a) => {
-    if (filter === "active") return a.status !== "Ride Out";
-    if (filter === "stale") return a.daysSinceActivity > 7 && a.status !== "Ride Out";
-    if (filter === "new") return a.status === "New";
-    return true;
-  });
+    const fullyExcludedLost = lostCalls.filter(c => hasGuaranteeIssue(c) || isLegalCase(c)).length;
+    const badStandingOnlyLost = lostCalls.filter(
+      c => getStandingCategory(c.paymentStanding) === 'bad' && !hasGuaranteeIssue(c) && !isLegalCase(c)
+    ).length;
+    const regularLost = lostCalls.length - fullyExcludedLost - badStandingOnlyLost;
+    const countableLost = regularLost + badStandingOnlyLost * 0.5;
+
+    const rawDenom = savedCalls.length + lostCalls.length + pendingCalls.length;
+    const rawSaveRate = rawDenom > 0 ? Math.round((savedCalls.length / rawDenom) * 100) : 0;
+
+    const commDenom = savedCalls.length + countableLost;
+    const commSaveRate = commDenom > 0 ? Math.round((savedCalls.length / commDenom) * 100) : 0;
+
+    const totalSaved = savedCalls.reduce((s, c) => s + getContractValue(c), 0);
+    const totalLost = lostCalls.reduce((s, c) => s + getContractValue(c), 0);
+
+    const goodStanding = calls.filter(c => getStandingCategory(c.paymentStanding) === 'good').length;
+    const badStanding = calls.filter(c => getStandingCategory(c.paymentStanding) === 'bad').length;
+
+    // Top 5 saved deals by contract value
+    const biggestDeals = [...savedCalls]
+      .sort((a, b) => getContractValue(b) - getContractValue(a))
+      .slice(0, 5);
+
+    // Recent 5 calls sorted by newest date
+    const recentSaves = [...calls]
+      .sort((a, b) => {
+        const da = getBestDate(a);
+        const db = getBestDate(b);
+        return db.localeCompare(da);
+      })
+      .slice(0, 5);
+
+    return {
+      savedCalls,
+      lostCalls,
+      pendingCalls,
+      fullyExcludedLost,
+      badStandingOnlyLost,
+      countableLost,
+      rawSaveRate,
+      commSaveRate,
+      totalSaved,
+      totalLost,
+      goodStanding,
+      badStanding,
+      biggestDeals,
+      recentSaves,
+    };
+  }, [calls]);
+
+  if (calls.length === 0) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', color: 'var(--muted)' }}>
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="12" y1="18" x2="12" y2="12" />
+          <line x1="9" y1="15" x2="15" y2="15" />
+        </svg>
+        <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--foreground)' }}>No Data Yet</div>
+        <div style={{ fontSize: '14px', textAlign: 'center', maxWidth: '320px' }}>
+          Import your Salesforce data to get started
+        </div>
+      </div>
+    );
+  }
+
+  const maxDealValue = metrics.biggestDeals.length > 0 ? getContractValue(metrics.biggestDeals[0]) : 0;
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--background)", color: "var(--foreground)", padding: "24px" }}>
+    <div style={{ padding: '24px', minHeight: '100vh' }}>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <div>
-          <h1 style={{ fontSize: "24px", fontWeight: 700, margin: 0 }}>DearDoc Command Center</h1>
-          <p style={{ fontSize: "13px", color: "var(--muted)", margin: "4px 0 0" }}>
-            {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-          </p>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0 }}>Save Desk Tracker</h1>
+        <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '4px 0 0' }}>
+          {calls.length} accounts loaded
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        {/* Total Accounts */}
+        <div className="card" style={{ padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Accounts</div>
+          <div className="stat-value" style={{ fontSize: '32px', fontWeight: 700, color: 'var(--foreground)' }}>{calls.length}</div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "12px",
-              color: "#4ade80",
-              background: "#22c55e15",
-              padding: "4px 12px",
-              borderRadius: "9999px",
-            }}
-          >
-            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80" }} />
-            Agents Active
-          </span>
-          <span style={{ fontSize: "13px", color: "var(--muted)" }}>Stelios Anastasiades</span>
+
+        {/* Saved */}
+        <div className="card" style={{ padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Saved</div>
+          <div className="stat-value" style={{ fontSize: '32px', fontWeight: 700, color: 'var(--success)' }}>{metrics.savedCalls.length}</div>
+        </div>
+
+        {/* Lost */}
+        <div className="card" style={{ padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Lost</div>
+          <div className="stat-value" style={{ fontSize: '32px', fontWeight: 700, color: 'var(--danger)' }}>{metrics.lostCalls.length}</div>
+        </div>
+
+        {/* Pending */}
+        <div className="card" style={{ padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending</div>
+          <div className="stat-value" style={{ fontSize: '32px', fontWeight: 700, color: 'var(--warning)' }}>{metrics.pendingCalls.length}</div>
+        </div>
+
+        {/* Save Rate - green gradient */}
+        <div className="card" style={{ padding: '20px', background: 'linear-gradient(135deg, #064e3b, #065f46)', border: '1px solid #10b981' }}>
+          <div style={{ fontSize: '12px', color: '#6ee7b7', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Comm. Save Rate</div>
+          <div style={{ fontSize: '36px', fontWeight: 700, color: '#ecfdf5' }}>{metrics.commSaveRate}%</div>
+          <div style={{ fontSize: '12px', color: '#6ee7b7', marginTop: '4px' }}>Raw: {metrics.rawSaveRate}%</div>
+        </div>
+
+        {/* MRR Saved */}
+        <div className="card" style={{ padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>MRR Saved</div>
+          <div className="stat-value" style={{ fontSize: '28px', fontWeight: 700, color: 'var(--success)' }}>{formatCurrency(metrics.totalSaved)}</div>
+        </div>
+
+        {/* MRR at Risk */}
+        <div className="card" style={{ padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>MRR at Risk</div>
+          <div className="stat-value" style={{ fontSize: '28px', fontWeight: 700, color: 'var(--danger)' }}>{formatCurrency(metrics.totalLost)}</div>
         </div>
       </div>
 
-      {/* Metric Cards */}
-      <div style={{ display: "flex", gap: "16px", marginBottom: "24px", flexWrap: "wrap" }}>
-        <MetricCard label="Active Saves" value={activeAccounts.length} color="var(--accent)" sub="pending accounts" />
-        <MetricCard label="MRR at Risk" value={`$${mrrAtRisk.toLocaleString()}`} color="var(--danger)" sub="monthly revenue" />
-        <MetricCard label="Today's Calls" value={todaysCalls} color="var(--success)" sub="save calls + exits" />
-        <MetricCard label="Stale Accounts" value={staleAccounts.length} color="var(--warning)" sub="> 7 days no activity" />
-        <MetricCard label="Urgent Emails" value={urgentEmails} color={urgentEmails > 0 ? "var(--danger)" : "var(--success)"} sub="need response" />
-      </div>
+      {/* Main content: 3 column layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
 
-      {/* Main Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: "20px" }}>
-        {/* Left Column */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {/* Today's Schedule */}
-          <div
-            style={{
-              background: "var(--card-bg)",
-              border: "1px solid var(--card-border)",
-              borderRadius: "12px",
-              padding: "20px",
-            }}
-          >
-            <h2 style={{ fontSize: "15px", fontWeight: 600, margin: "0 0 16px" }}>Today&apos;s Schedule</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {mockCalendar.map((event) => (
-                <div
-                  key={event.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "10px 12px",
-                    background: "#0f172a",
-                    borderRadius: "8px",
-                    gap: "4px",
-                  }}
-                >
-                  <EventTypeDot type={event.type} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: "13px", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {event.title}
-                    </div>
-                    <div style={{ fontSize: "11px", color: "var(--muted)" }}>{event.time}</div>
-                  </div>
-                </div>
-              ))}
+        {/* Save Metrics */}
+        <div className="card" style={{ padding: '24px' }}>
+          <div className="card-header" style={{ marginBottom: '20px' }}>
+            <h2 className="card-title" style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>Save Metrics</h2>
+          </div>
+
+          {/* Rates side by side */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ textAlign: 'center', padding: '16px', background: '#0f172a', borderRadius: '8px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Commissionable</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--success)' }}>{metrics.commSaveRate}%</div>
+            </div>
+            <div style={{ textAlign: 'center', padding: '16px', background: '#0f172a', borderRadius: '8px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '6px', textTransform: 'uppercase' }}>Raw Rate</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--foreground)' }}>{metrics.rawSaveRate}%</div>
             </div>
           </div>
 
-          {/* Client Emails */}
-          <div
-            style={{
-              background: "var(--card-bg)",
-              border: "1px solid var(--card-border)",
-              borderRadius: "12px",
-              padding: "20px",
-            }}
-          >
-            <h2 style={{ fontSize: "15px", fontWeight: 600, margin: "0 0 16px" }}>Client Emails</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {mockEmails.map((email) => (
-                <div
-                  key={email.id}
-                  style={{
-                    padding: "10px 12px",
-                    background: "#0f172a",
-                    borderRadius: "8px",
-                    borderLeft: email.isUrgent ? "3px solid var(--danger)" : "3px solid transparent",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                    <span style={{ fontSize: "13px", fontWeight: 600 }}>{email.from}</span>
-                    <span style={{ fontSize: "11px", color: "var(--muted)" }}>{email.time}</span>
-                  </div>
-                  <div style={{ fontSize: "12px", fontWeight: 500, marginBottom: "2px" }}>{email.subject}</div>
-                  <div style={{ fontSize: "11px", color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {email.preview}
-                  </div>
-                </div>
-              ))}
+          {/* Saved / Lost / Pending counts */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ textAlign: 'center', padding: '12px', background: '#0f172a', borderRadius: '8px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--success)' }}>{metrics.savedCalls.length}</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Saved</div>
+            </div>
+            <div style={{ textAlign: 'center', padding: '12px', background: '#0f172a', borderRadius: '8px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--danger)' }}>{metrics.lostCalls.length}</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Lost</div>
+            </div>
+            <div style={{ textAlign: 'center', padding: '12px', background: '#0f172a', borderRadius: '8px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--warning)' }}>{metrics.pendingCalls.length}</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Pending</div>
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div
-            style={{
-              background: "var(--card-bg)",
-              border: "1px solid var(--card-border)",
-              borderRadius: "12px",
-              padding: "20px",
-            }}
-          >
-            <h2 style={{ fontSize: "15px", fontWeight: 600, margin: "0 0 16px" }}>Quick Actions</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {[
-                { label: "Run Morning Briefing", icon: "📋" },
-                { label: "Batch Follow-ups", icon: "📧" },
-                { label: "Check Emails Now", icon: "📥" },
-                { label: "Prep Today's Calls", icon: "📞" },
-              ].map((action) => (
-                <button
-                  key={action.label}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    width: "100%",
-                    padding: "10px 14px",
-                    background: "#0f172a",
-                    border: "1px solid var(--card-border)",
-                    borderRadius: "8px",
-                    color: "var(--foreground)",
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    transition: "border-color 0.15s",
-                    textAlign: "left",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--card-border)")}
-                >
-                  <span>{action.icon}</span>
-                  {action.label}
-                </button>
-              ))}
+          {/* Excluded from Commission */}
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Excluded from Commission</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#0f172a', borderRadius: '6px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '13px' }}>Guarantee Hits / Legal</span>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--warning)' }}>{metrics.fullyExcludedLost}</span>
             </div>
-          </div>
-        </div>
-
-        {/* Right Column -- Pending Accounts */}
-        <div
-          style={{
-            background: "var(--card-bg)",
-            border: "1px solid var(--card-border)",
-            borderRadius: "12px",
-            padding: "20px",
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h2 style={{ fontSize: "15px", fontWeight: 600, margin: 0 }}>
-              Pending Accounts{" "}
-              <span style={{ color: "var(--muted)", fontWeight: 400 }}>({filteredAccounts.length})</span>
-            </h2>
-            <div style={{ display: "flex", gap: "4px" }}>
-              {(["all", "active", "stale", "new"] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  style={{
-                    padding: "4px 12px",
-                    borderRadius: "6px",
-                    border: "none",
-                    background: filter === f ? "var(--accent)" : "transparent",
-                    color: filter === f ? "#fff" : "var(--muted)",
-                    fontSize: "12px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {f}
-                </button>
-              ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#0f172a', borderRadius: '6px' }}>
+              <span style={{ fontSize: '13px' }}>Bad Standing (0.5x)</span>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--warning)' }}>{metrics.badStandingOnlyLost}</span>
             </div>
           </div>
 
-          {/* Table Header */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "2fr 1.2fr 0.8fr 1fr 0.8fr 0.7fr",
-              padding: "8px 12px",
-              fontSize: "11px",
-              fontWeight: 600,
-              color: "var(--muted)",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              borderBottom: "1px solid var(--card-border)",
-            }}
-          >
-            <span>Practice</span>
-            <span>Contact</span>
-            <span>Status</span>
-            <span>MRR</span>
-            <span>Payment</span>
-            <span>Days</span>
-          </div>
-
-          {/* Table Rows */}
-          <div style={{ maxHeight: "calc(100vh - 340px)", overflowY: "auto" }}>
-            {filteredAccounts.map((account) => (
-              <div key={account.id}>
-                <div
-                  onClick={() => setExpandedId(expandedId === account.id ? null : account.id)}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "2fr 1.2fr 0.8fr 1fr 0.8fr 0.7fr",
-                    padding: "12px",
-                    fontSize: "13px",
-                    borderBottom: "1px solid #1e293b50",
-                    cursor: "pointer",
-                    background: expandedId === account.id ? "#1e293b80" : "transparent",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (expandedId !== account.id) e.currentTarget.style.background = "#1e293b40";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (expandedId !== account.id) e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  <span style={{ fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {account.practice}
-                  </span>
-                  <span style={{ color: "var(--muted)" }}>{account.contact}</span>
-                  <span>
-                    <StatusBadge status={account.status} />
-                  </span>
-                  <span style={{ fontWeight: 600 }}>${account.monthlySales.toLocaleString()}</span>
-                  <span>
-                    <PaymentBadge standing={account.paymentStanding} />
-                  </span>
-                  <span
-                    style={{
-                      color: account.daysSinceActivity > 7 ? "var(--warning)" : "var(--muted)",
-                      fontWeight: account.daysSinceActivity > 7 ? 600 : 400,
-                    }}
-                  >
-                    {account.daysSinceActivity}d
-                  </span>
-                </div>
-
-                {/* Expanded Detail Panel */}
-                {expandedId === account.id && (
-                  <div
-                    style={{
-                      padding: "16px 20px",
-                      background: "#0f172a",
-                      borderBottom: "1px solid var(--card-border)",
-                    }}
-                  >
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "12px" }}>
-                      <div>
-                        <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>Cancel Reason</div>
-                        <div style={{ fontSize: "13px", fontWeight: 500 }}>{account.cancelReason}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>Contract</div>
-                        <div style={{ fontSize: "13px", fontWeight: 500 }}>{account.contractTerm}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>Processor</div>
-                        <div style={{ fontSize: "13px", fontWeight: 500 }}>{account.paymentProcessor}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>Save Type</div>
-                        <div style={{ fontSize: "13px", fontWeight: 500 }}>{account.saveType}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>Save Date</div>
-                        <div style={{ fontSize: "13px", fontWeight: 500 }}>{account.saveDate}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>Payment</div>
-                        <div style={{ fontSize: "13px", fontWeight: 500 }}>{account.paymentStanding}</div>
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "4px" }}>Notes</div>
-                      <div style={{ fontSize: "13px", lineHeight: "1.5" }}>{account.notes}</div>
-                    </div>
-                    <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-                      <button
-                        style={{
-                          padding: "6px 14px",
-                          background: "var(--accent)",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "6px",
-                          fontSize: "12px",
-                          fontWeight: 500,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Get Intel
-                      </button>
-                      <button
-                        style={{
-                          padding: "6px 14px",
-                          background: "transparent",
-                          color: "var(--foreground)",
-                          border: "1px solid var(--card-border)",
-                          borderRadius: "6px",
-                          fontSize: "12px",
-                          fontWeight: 500,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Draft Follow-up
-                      </button>
-                      <button
-                        style={{
-                          padding: "6px 14px",
-                          background: "transparent",
-                          color: "var(--foreground)",
-                          border: "1px solid var(--card-border)",
-                          borderRadius: "6px",
-                          fontSize: "12px",
-                          fontWeight: 500,
-                          cursor: "pointer",
-                        }}
-                      >
-                        View Emails
-                      </button>
-                    </div>
-                  </div>
-                )}
+          {/* Payment Standing */}
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Payment Standing</div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ flex: 1, textAlign: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--success)' }}>{metrics.goodStanding}</div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Good</div>
               </div>
-            ))}
+              <div style={{ flex: 1, textAlign: 'center', padding: '10px', background: '#0f172a', borderRadius: '6px' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--danger)' }}>{metrics.badStanding}</div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Bad</div>
+              </div>
+            </div>
           </div>
+
+          {/* Contract Value Impact */}
+          <div>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Contract Value Impact</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: '#0f172a', borderRadius: '6px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--success)' }}>Total Saved</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--success)' }}>{formatCurrency(metrics.totalSaved)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: '#0f172a', borderRadius: '6px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--danger)' }}>Total Lost</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--danger)' }}>{formatCurrency(metrics.totalLost)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Biggest Deals */}
+        <div className="card" style={{ padding: '24px' }}>
+          <div className="card-header" style={{ marginBottom: '20px' }}>
+            <h2 className="card-title" style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>Biggest Deals</h2>
+            <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Top 5 saved by contract value</span>
+          </div>
+
+          {metrics.biggestDeals.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)' }}>
+              <div style={{ fontSize: '14px' }}>No saved deals yet</div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {metrics.biggestDeals.map((deal, idx) => {
+                const value = getContractValue(deal);
+                const barWidth = maxDealValue > 0 ? (value / maxDealValue) * 100 : 0;
+                const truncatedName = deal.accountName.length > 22 ? deal.accountName.slice(0, 22) + '...' : deal.accountName;
+                return (
+                  <div
+                    key={deal.id}
+                    onClick={() => openCallModal(deal.id)}
+                    style={{ cursor: 'pointer', padding: '12px', background: '#0f172a', borderRadius: '8px', transition: 'background 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#1e293b'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#0f172a'; }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--muted)', minWidth: '20px' }}>#{idx + 1}</span>
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>{truncatedName}</span>
+                      </div>
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--success)' }}>{formatCurrency(value)}</span>
+                    </div>
+                    {/* Bar */}
+                    <div style={{ height: '6px', background: '#1e293b', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${barWidth}%`, background: 'linear-gradient(90deg, #10b981, #34d399)', borderRadius: '3px', transition: 'width 0.3s ease' }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                      {deal.saveType && (
+                        <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{deal.saveType}</span>
+                      )}
+                      {deal.ratePerMonth && (
+                        <span style={{ fontSize: '11px', color: 'var(--muted)' }}>${deal.ratePerMonth}/mo</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Recent Saves */}
+        <div className="card" style={{ padding: '24px' }}>
+          <div className="card-header" style={{ marginBottom: '20px' }}>
+            <h2 className="card-title" style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>Recent Activity</h2>
+            <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Last 5 entries</span>
+          </div>
+
+          {metrics.recentSaves.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)' }}>
+              <div style={{ fontSize: '14px' }}>No calls yet</div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {metrics.recentSaves.map(call => {
+                const category = categorizeStatus(call.saveStatus, call.saveType);
+                const standing = getStandingCategory(call.paymentStanding);
+                const guarantee = hasGuaranteeIssue(call);
+                const badgeClass =
+                  category === 'saved' ? 'badge-saved' :
+                  category === 'lost' ? 'badge-lost' :
+                  category === 'pending' ? 'badge-pending' :
+                  'badge-excluded';
+
+                return (
+                  <div
+                    key={call.id}
+                    onClick={() => openCallModal(call.id)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f172a', borderRadius: '8px', cursor: 'pointer', transition: 'background 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#1e293b'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#0f172a'; }}
+                  >
+                    {/* Avatar */}
+                    <div className="avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600, flexShrink: 0 }}>
+                      {getInitials(call.accountName)}
+                    </div>
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {call.accountName}
+                        </span>
+                        {guarantee && (
+                          <span title="Guarantee issue" style={{ fontSize: '12px', color: 'var(--warning)' }}>&#9888;</span>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--muted)' }}>
+                        {call.saveType && <span>{call.saveType}</span>}
+                        {call.ratePerMonth && <span>${call.ratePerMonth}/mo</span>}
+                      </div>
+                    </div>
+
+                    {/* Right side badges */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
+                      <span className={badgeClass}>{category}</span>
+                      <span style={{ fontSize: '11px', color: standing === 'bad' ? 'var(--danger)' : standing === 'good' ? 'var(--success)' : 'var(--muted)' }}>
+                        {standing === 'bad' ? 'Bad Standing' : standing === 'good' ? 'Good Standing' : ''}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
