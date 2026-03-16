@@ -1,6 +1,8 @@
 'use client';
 
 import Sidebar from './Sidebar';
+import CallModal from './CallModal';
+import ImportModal from './ImportModal';
 import { CallTrackerProvider } from '@/lib/store';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -11,6 +13,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <main className="main-content">
           {children}
         </main>
+        <CallModal />
+        <ImportModal />
       </div>
     </CallTrackerProvider>
   );
