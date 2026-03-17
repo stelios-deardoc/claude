@@ -21,6 +21,16 @@ export interface Call {
   cancellationStage: string;
   cancellationSubReason: string;
   saveSubReason: string;
+  // Accounting change fields
+  refundAmount: string;
+  refundDate: string;
+  contractSwap: string;
+  contractLength: string;
+  paymentMethod: string;
+  relaunch: string;
+  relaunchDate: string;
+  dateChanged: string;
+  accountingNotes: string;
 }
 
 export type CallCategory = 'saved' | 'lost' | 'pending' | 'excluded' | 'other';
@@ -45,6 +55,35 @@ export interface Suggestion {
   originalNotes: string;
   daysPending: number;
   contractValue: number;
+}
+
+export interface ActivityEntry {
+  id: string;
+  timestamp: string;        // ISO string
+  source: 'gmail' | 'calendar' | 'manual';
+  summary: string;          // "Email sent to Dr. Friedman" or "Meeting at 2pm"
+  metadata: {
+    emailId?: string;       // Gmail message ID for linking
+    eventId?: string;       // Calendar event ID
+    subject?: string;       // Email subject or event title
+  };
+}
+
+export interface TodoTask {
+  id: string;
+  title: string;
+  description: string;
+  dueDate: string;          // 'YYYY-MM-DD' or ''
+  priority: 'high' | 'medium' | 'low';
+  category: 'follow-up' | 'email' | 'internal' | 'salesforce' | 'meeting' | 'other';
+  linkedAccountId: string;  // '' if not linked
+  status: 'active' | 'review' | 'completed';
+  completed: boolean;       // kept for backward compat, derived from status
+  completedAt: string;      // ISO string or ''
+  createdAt: string;        // ISO string
+  activityLog: ActivityEntry[];
+  lastSyncedAt: string;     // ISO string or ''
+  autoCreated?: boolean;    // true if created from calendar sync
 }
 
 export interface CDPTier {
@@ -77,4 +116,82 @@ export interface AppState {
   calendarInitialized: boolean;
   selectedCdpLevel: CDPLevelKey;
   clawbackAmount: number;
+}
+
+// ============================================================
+// Master Email Workflow Types
+// ============================================================
+
+export type EmailPriority = 'P0' | 'P1' | 'P2' | 'P3';
+export type EmailStatus = 'needs_response' | 'draft_ready' | 'sent' | 'archived' | 'snoozed';
+
+export interface MatchedAccount {
+  accountName: string;
+  accountId: string;
+  saveStatus: string;
+  mrrAtRisk: number;
+  contractEnd: string;
+  paymentStanding: string;
+}
+
+export interface EmailResearch {
+  gmailThreadSummary: string;
+  slackMentions: string[];
+  recentTranscripts: string[];
+  calendarContext: string;
+  accountTimeline: string;
+  accountIntel: string;
+  saveDeskNotes: string;
+  researchedAt: string;
+}
+
+export interface EmailDraft {
+  body: string;
+  tone: 'value-first' | 'enforcement' | 'hybrid' | 'internal' | 'brief';
+  strategy: string;
+  createdAt: string;
+}
+
+export interface PendingAction {
+  action: 'send' | 'archive' | 'snooze';
+  emailId: string;
+  gmailDraftId?: string;
+  snoozeUntil?: string;
+  queuedAt: string;
+}
+
+export interface ProcessedEmail {
+  id: string;
+  threadId: string;
+  gmailDraftId: string;
+  from: string;
+  subject: string;
+  snippet: string;
+  receivedAt: string;
+  priority: EmailPriority;
+  priorityReason: string;
+  status: EmailStatus;
+  statusUpdatedAt: string;
+  snoozeUntil?: string;
+  matchedAccount?: MatchedAccount;
+  research?: EmailResearch;
+  draft?: EmailDraft;
+}
+
+export interface EmailWorkflowRunStats {
+  total: number;
+  p0: number;
+  p1: number;
+  p2: number;
+  p3: number;
+  drafted: number;
+  archived: number;
+  researchedAccounts: number;
+}
+
+export interface EmailWorkflowData {
+  lastRunAt: string;
+  lastRunStats: EmailWorkflowRunStats;
+  pendingActions: PendingAction[];
+  emails: ProcessedEmail[];
 }

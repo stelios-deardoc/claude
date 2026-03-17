@@ -1,0 +1,225 @@
+{
+  "lastRunAt": "2026-03-17T14:30:00-04:00",
+  "lastRunStats": {
+    "total": 28,
+    "p0": 2,
+    "p1": 3,
+    "p2": 4,
+    "p3": 19,
+    "drafted": 5,
+    "archived": 19,
+    "researchedAccounts": 5
+  },
+  "pendingActions": [
+    {
+      "action": "archive",
+      "emailId": "msg_006",
+      "queuedAt": "2026-03-17T19:15:00.806Z"
+    }
+  ],
+  "emails": [
+    {
+      "id": "msg_001",
+      "threadId": "thread_001",
+      "gmailDraftId": "draft_001",
+      "from": "Dr. Sarah Koontz <sarah@koontzfamilydental.com>",
+      "subject": "Re: Cancellation Request - Need to Discuss",
+      "snippet": "Stelios, I've been thinking about our conversation and I still feel like the product isn't delivering what was promised. We were told we'd see at least 20 new patients per month and we're barely getting 5. I need to cancel before my next billing cycle. Please confirm this is being processed.",
+      "receivedAt": "2026-03-17T13:45:00-04:00",
+      "priority": "P0",
+      "priorityReason": "Active cancellation request from pending save account -- $450 MRR at risk",
+      "status": "draft_ready",
+      "statusUpdatedAt": "2026-03-17T14:30:00-04:00",
+      "matchedAccount": {
+        "accountName": "Koontz Family Dental",
+        "accountId": "001ABC123",
+        "saveStatus": "Pending",
+        "mrrAtRisk": 450,
+        "contractEnd": "2026-09-15",
+        "paymentStanding": "Good"
+      },
+      "research": {
+        "gmailThreadSummary": "3 prior emails in thread. Stelios sent initial save offer on 3/10 with 20% discount. Dr. Koontz replied saying she'd think about it. No response since until today's follow-up pushing for cancellation.",
+        "slackMentions": [
+          "CSM Jake mentioned 3/12: 'Koontz account has guarantee issue -- AI Chat only delivered 12 bookings vs 20 promised. Client frustrated.'",
+          "AM thread 3/8: 'Dr. Koontz called in wanting to cancel. Warm transfer to Stelios scheduled for 3/10.'"
+        ],
+        "recentTranscripts": [
+          "3/10 call recap: Dr. Koontz expressed frustration with AI Chat booking numbers. Stelios acknowledged the gap, highlighted 47 website visits driven by SEO (up 180% from pre-DearDoc). Offered 20% discount for 6-month renewal. Client said she'd 'think about it' but seemed 60/40 leaning cancel."
+        ],
+        "calendarContext": "No upcoming meetings scheduled with Koontz. Last meeting was 3/10 at 2pm (45 min call).",
+        "accountTimeline": "1/15 - Onboarded with AI Chat + SEO bundle ($450/mo)\n2/1 - First month review: 8 AI Chat bookings, 22 website visits\n2/15 - CSM check-in: client expressed concern about booking volume\n3/1 - AI Chat bookings dropped to 5. Client called to cancel.\n3/8 - Warm transfer to Stelios\n3/10 - Save call: offered 20% discount, client considering\n3/17 - Client emails pushing for cancellation",
+        "accountIntel": "High-value account ($450 MRR, 6 months remaining on contract). Guarantee issue is legitimate -- AI Chat underdelivering. However, SEO performance is strong (180% traffic increase). Strategy should lean into SEO value and reframe the AI Chat as supplementary. Contract enforcement possible but risky given legitimate guarantee miss.",
+        "saveDeskNotes": "Save call 3/10: Offered $360/mo (20% off) for 6-month renewal. Client non-committal. Decision state: PENDING. Need stronger value prop focusing on SEO wins.",
+        "researchedAt": "2026-03-17T14:28:00-04:00"
+      },
+      "draft": {
+        "body": "Dr. Koontz,\n\nThank you for following up -- I appreciate you giving this some thought rather than just walking away.\n\nI want to address the AI Chat numbers head-on. You're right that 5 bookings is below what we targeted, and I've already flagged this with our product team to review your chat flow and optimize it.\n\nWhat I don't want to get lost in this conversation is what IS working. Your website traffic is up 180% since we started -- from 22 visits to 47 per month. That's real visibility driving real patients to your door, even beyond the chat widget. Your Google ranking for 'family dentist [your city]' moved from page 3 to the top of page 1.\n\nHere's what I'd like to propose: let's lock in a reduced rate of $340/mo (25% off your current rate) for the remaining 6 months. That gives us time to get the AI Chat performing where it should be, while you keep the SEO momentum that's already working.\n\nAt $340/mo with even 8-10 bookings per month, that's roughly $40-50 per new patient lead -- well below the $150-200 most practices pay for Google Ads leads.\n\nWould you be open to a quick 15-minute call this week so I can walk you through the optimization plan for AI Chat?\n\nBest,\n\nStelios",
+        "tone": "value-first",
+        "strategy": "Leading with SEO value (180% traffic increase) since AI Chat has legitimate underperformance. Improved offer from 20% to 25% discount. ROI frame compares cost-per-lead to Google Ads. CTA is a short call to discuss AI Chat optimization plan.",
+        "createdAt": "2026-03-17T14:29:00-04:00"
+      }
+    },
+    {
+      "id": "msg_002",
+      "threadId": "thread_002",
+      "gmailDraftId": "",
+      "from": "Dr. Michael Rivera <mrivera@riveraortho.com>",
+      "subject": "URGENT: Unauthorized charge on our account",
+      "snippet": "I just noticed a charge of $1,200 on our business account from DearDoc that I did not authorize. I thought we cancelled last month. If this is not reversed immediately I will be filing a chargeback with my bank and contacting the BBB. This is unacceptable.",
+      "receivedAt": "2026-03-17T14:15:00-04:00",
+      "priority": "P0",
+      "priorityReason": "Chargeback threat + BBB mention -- requires immediate enforcement response",
+      "status": "needs_response",
+      "statusUpdatedAt": "2026-03-17T14:30:00-04:00",
+      "matchedAccount": {
+        "accountName": "Rivera Orthodontics",
+        "accountId": "001DEF456",
+        "saveStatus": "Pending",
+        "mrrAtRisk": 400,
+        "contractEnd": "2026-12-01",
+        "paymentStanding": "Good"
+      },
+      "research": {
+        "gmailThreadSummary": "No prior email thread with Dr. Rivera. This is a new inbound complaint.",
+        "slackMentions": [
+          "CSM Maria 3/5: 'Rivera Ortho wants to cancel. Says they found a cheaper solution. Contract runs through Dec 2026.'",
+          "Billing team 3/10: 'Rivera Ortho -- quarterly billing cycle hit on 3/10 for $1,200 (3x $400/mo). Client did not cancel before billing date.'"
+        ],
+        "recentTranscripts": [],
+        "calendarContext": "No meetings found with Rivera.",
+        "accountTimeline": "6/1/2025 - Signed 18-month contract ($400/mo, quarterly billing)\n9/2025 - Quarterly billing: $1,200\n12/2025 - Quarterly billing: $1,200\n3/5/2026 - Client called to cancel\n3/10/2026 - Quarterly billing: $1,200 auto-processed\n3/17/2026 - Client emails threatening chargeback + BBB",
+        "accountIntel": "Active 18-month contract through Dec 2026. The charge is legitimate per contract terms. Need enforcement response but also explore save -- 'cheaper solution' may be negotiation tactic.",
+        "saveDeskNotes": "No prior save call. Client went directly to CSM. Never spoke with Stelios.",
+        "researchedAt": "2026-03-17T14:28:00-04:00"
+      }
+    },
+    {
+      "id": "msg_003",
+      "threadId": "thread_003",
+      "gmailDraftId": "draft_003",
+      "from": "Dr. Lisa Chen <lchen@chendermatology.com>",
+      "subject": "Re: Your DearDoc Account - Quick Question",
+      "snippet": "Hi Stelios, thanks for reaching out last week. I wanted to ask -- is there any way to add the Reviews product to our current plan without increasing our monthly cost? We're happy with AI Chat but would love to get more Google reviews.",
+      "receivedAt": "2026-03-17T11:30:00-04:00",
+      "priority": "P1",
+      "priorityReason": "Client asking about upsell opportunity -- positive engagement",
+      "status": "draft_ready",
+      "statusUpdatedAt": "2026-03-17T14:30:00-04:00",
+      "matchedAccount": {
+        "accountName": "Chen Dermatology",
+        "accountId": "001GHI789",
+        "saveStatus": "Saved",
+        "mrrAtRisk": 0,
+        "contractEnd": "2026-11-30",
+        "paymentStanding": "Good"
+      },
+      "research": {
+        "gmailThreadSummary": "Stelios sent proactive check-in on 3/12. Dr. Chen responded positively, now asking about Reviews add-on.",
+        "slackMentions": [
+          "AM channel 2/20: 'Chen Derm is a happy account -- 25+ AI Chat bookings/mo. Good upsell candidate.'"
+        ],
+        "recentTranscripts": [],
+        "calendarContext": "No upcoming meetings.",
+        "accountTimeline": "8/2025 - Signed for AI Chat ($250/mo)\n9-12/2025 - Consistent 20-28 bookings/mo\n1/2026 - Renewed at same rate\n3/12 - Stelios proactive outreach\n3/17 - Client asks about Reviews",
+        "accountIntel": "Happy client, strong performance. Reviews add-on normally $100/mo. Offer bundle discount or longer term to absorb cost.",
+        "saveDeskNotes": "Previously saved Jan 2026. Currently in good standing.",
+        "researchedAt": "2026-03-17T14:28:00-04:00"
+      },
+      "draft": {
+        "body": "Dr. Chen,\n\nGreat to hear AI Chat is working well -- 25+ bookings a month is excellent.\n\nI love that you're thinking about Reviews. Here's what I can do: if you're open to extending your agreement by 6 months (through May 2027), I can add Reviews to your plan at no additional monthly cost. That keeps you at $250/mo with both products.\n\nThe Reviews tool typically drives 15-20 new Google reviews per month for practices your size, which directly impacts your local search ranking and brings in even more new patients.\n\nWant me to get that set up for you?\n\nBest,\n\nStelios",
+        "tone": "value-first",
+        "strategy": "Client is happy and asking for more. Offering Reviews free in exchange for 6-month extension locks in retention.",
+        "createdAt": "2026-03-17T14:29:00-04:00"
+      }
+    },
+    {
+      "id": "msg_004",
+      "threadId": "thread_004",
+      "gmailDraftId": "draft_004",
+      "from": "Jake Martinez <jake@getdeardoc.com>",
+      "subject": "Re: Pending Accounts - Need Status Update",
+      "snippet": "Hey Stelios, can you give me a quick update on the Rivera and Koontz accounts? Leadership is asking about pending saves and I need to update the tracker by EOD.",
+      "receivedAt": "2026-03-17T12:00:00-04:00",
+      "priority": "P1",
+      "priorityReason": "Internal request from CSM with EOD deadline",
+      "status": "draft_ready",
+      "statusUpdatedAt": "2026-03-17T14:30:00-04:00",
+      "research": {
+        "gmailThreadSummary": "Jake sent initial email asking for status on 5 pending accounts. Stelios replied with updates on 3. Jake following up on remaining 2.",
+        "slackMentions": [],
+        "recentTranscripts": [],
+        "calendarContext": "",
+        "accountTimeline": "",
+        "accountIntel": "",
+        "saveDeskNotes": "",
+        "researchedAt": "2026-03-17T14:28:00-04:00"
+      },
+      "draft": {
+        "body": "Jake --\n\nKoontz: Still pending. She emailed today pushing for cancellation again. I'm sending an improved offer (25% off + AI Chat optimization plan). Should have a decision by end of week.\n\nRivera: New situation -- client is threatening chargeback over a legitimate quarterly charge. I'm drafting an enforcement response now. Will likely need to set up a save call once the billing dispute is resolved.\n\nI'll update the tracker once I have movement on both.\n\nStelios",
+        "tone": "internal",
+        "strategy": "Concise internal update with status and next steps for each account.",
+        "createdAt": "2026-03-17T14:29:00-04:00"
+      }
+    },
+    {
+      "id": "msg_005",
+      "threadId": "thread_005",
+      "gmailDraftId": "",
+      "from": "Dr. Amy Patel <apatel@patelsmiles.com>",
+      "subject": "Quick scheduling question",
+      "snippet": "Hi Stelios, I missed your call yesterday. Can we reschedule for Thursday at 2pm? I'd like to discuss our options before making a final decision.",
+      "receivedAt": "2026-03-17T10:15:00-04:00",
+      "priority": "P1",
+      "priorityReason": "Client requesting reschedule for decision call -- time-sensitive save opportunity",
+      "status": "needs_response",
+      "statusUpdatedAt": "2026-03-17T14:30:00-04:00",
+      "matchedAccount": {
+        "accountName": "Patel Smiles Dentistry",
+        "accountId": "001JKL012",
+        "saveStatus": "Pending",
+        "mrrAtRisk": 350,
+        "contractEnd": "2026-08-01",
+        "paymentStanding": "Good"
+      },
+      "research": {
+        "gmailThreadSummary": "First direct email from Dr. Patel. Previous communication through CSM.",
+        "slackMentions": [
+          "CSM thread 3/14: 'Patel Smiles -- warm transfer to Stelios. Client considering downgrade vs cancel. Seems saveable.'"
+        ],
+        "recentTranscripts": [],
+        "calendarContext": "Thursday 3/19 at 2pm is currently open on Stelios's calendar.",
+        "accountTimeline": "10/2025 - Signed for AI Chat + SEO ($350/mo)\n3/14 - CSM warm transfer to Stelios\n3/16 - Stelios called, no answer\n3/17 - Client requests Thursday 2pm reschedule",
+        "accountIntel": "Client considering downgrade vs cancel. Requesting a call is positive -- she hasn't decided to leave. Thursday call is critical.",
+        "saveDeskNotes": "No save call completed yet. Warm transfer from CSM.",
+        "researchedAt": "2026-03-17T14:28:00-04:00"
+      }
+    },
+    {
+      "id": "msg_006",
+      "threadId": "thread_006",
+      "gmailDraftId": "",
+      "from": "Salesforce <noreply@salesforce.com>",
+      "subject": "Task Assigned: Follow up with Greenfield Dental",
+      "snippet": "A new task has been assigned to you in Salesforce.",
+      "receivedAt": "2026-03-17T09:00:00-04:00",
+      "priority": "P2",
+      "priorityReason": "Salesforce notification -- FYI only",
+      "status": "archived",
+      "statusUpdatedAt": "2026-03-17T19:15:00.806Z"
+    },
+    {
+      "id": "msg_007",
+      "threadId": "thread_007",
+      "gmailDraftId": "",
+      "from": "LinkedIn <notifications-noreply@linkedin.com>",
+      "subject": "You have 3 new connection requests",
+      "snippet": "See who wants to connect with you on LinkedIn.",
+      "receivedAt": "2026-03-17T08:30:00-04:00",
+      "priority": "P3",
+      "priorityReason": "Noise -- LinkedIn notification",
+      "status": "archived",
+      "statusUpdatedAt": "2026-03-17T14:30:00-04:00"
+    }
+  ]
+}
