@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { t } from '@/lib/theme';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -33,10 +34,10 @@ interface DayEvent extends CalendarEvent {
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const DECISION_COLORS: Record<string, string> = {
-  SAVED: '#22c55e',
-  LOST: '#ef4444',
-  PENDING: '#f59e0b',
-  UNKNOWN: '#64748b',
+  SAVED: t.success,
+  LOST: t.danger,
+  PENDING: t.warning,
+  UNKNOWN: t.muted,
 };
 
 // ---------------------------------------------------------------------------
@@ -86,10 +87,10 @@ function getEventTime(start: string): string {
 
 function getChipColor(evt: DayEvent): string {
   if (evt.decisionInfo) {
-    return DECISION_COLORS[evt.decisionInfo.decision.toUpperCase()] || '#64748b';
+    return DECISION_COLORS[evt.decisionInfo.decision.toUpperCase()] || t.muted;
   }
-  if (evt.isClientMeeting) return '#3b82f6'; // blue for client meetings
-  return '#475569'; // gray for internal
+  if (evt.isClientMeeting) return t.accent; // blue for client meetings
+  return t.textTertiary; // gray for internal
 }
 
 function getChipBg(evt: DayEvent): string {
@@ -226,7 +227,7 @@ export default function CalendarPage() {
           {/* Day headers */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, marginBottom: 4 }}>
             {DAY_NAMES.map((name) => (
-              <div key={name} style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#94a3b8', padding: '8px 0' }}>
+              <div key={name} style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: t.textSecondary, padding: '8px 0' }}>
                 {name}
               </div>
             ))}
@@ -249,8 +250,8 @@ export default function CalendarPage() {
                   key={idx}
                   onClick={() => setSelectedDay(isSelected ? null : dateKey)}
                   style={{
-                    background: isSelected ? '#1e293b' : '#0f172a',
-                    border: isSelected ? '2px solid var(--accent)' : isToday ? '2px solid #334155' : '1px solid #1e293b',
+                    background: isSelected ? t.cardBg : t.bg,
+                    border: isSelected ? `2px solid ${t.accent}` : isToday ? `2px solid ${t.cardBorder}` : `1px solid ${t.cardBg}`,
                     minHeight: 100,
                     padding: 6,
                     opacity: isCurrentMonth ? 1 : 0.3,
@@ -264,7 +265,7 @@ export default function CalendarPage() {
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     width: 28, height: 28, borderRadius: '50%',
                     fontSize: 13, fontWeight: isToday ? 700 : 400,
-                    color: isToday ? '#fff' : '#cbd5e1',
+                    color: isToday ? t.statValue : t.cardBorder,
                     background: isToday ? 'var(--accent)' : 'transparent',
                     marginBottom: 4,
                   }}>
@@ -295,12 +296,12 @@ export default function CalendarPage() {
                     ))}
                     {/* Internal event count */}
                     {dayEvents.length > clientEvents.length && (
-                      <div style={{ fontSize: 9, color: '#64748b', paddingLeft: 4 }}>
+                      <div style={{ fontSize: 9, color: t.muted, paddingLeft: 4 }}>
                         +{dayEvents.length - clientEvents.length} internal
                       </div>
                     )}
                     {overflow > 0 && (
-                      <div style={{ fontSize: 9, color: '#94a3b8', paddingLeft: 4 }}>
+                      <div style={{ fontSize: 9, color: t.textSecondary, paddingLeft: 4 }}>
                         +{overflow} more
                       </div>
                     )}
@@ -312,11 +313,11 @@ export default function CalendarPage() {
 
           {/* Legend */}
           <div style={{ display: 'flex', gap: 16, marginTop: 12, paddingLeft: 4 }}>
-            <LegendItem color="#3b82f6" label="Client Meeting" />
-            <LegendItem color="#22c55e" label="Saved" />
-            <LegendItem color="#ef4444" label="Lost" />
-            <LegendItem color="#f59e0b" label="Pending" />
-            <LegendItem color="#475569" label="Internal" />
+            <LegendItem color={t.accent} label="Client Meeting" />
+            <LegendItem color={t.success} label="Saved" />
+            <LegendItem color={t.danger} label="Lost" />
+            <LegendItem color={t.warning} label="Pending" />
+            <LegendItem color={t.textTertiary} label="Internal" />
           </div>
         </div>
 
@@ -339,7 +340,7 @@ export default function CalendarPage() {
                     key={evt.id}
                     style={{
                       padding: 12,
-                      background: '#0f172a',
+                      background: t.bg,
                       borderRadius: 8,
                       borderLeft: `4px solid ${getChipColor(evt)}`,
                     }}
@@ -361,8 +362,8 @@ export default function CalendarPage() {
                       <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                         <span style={{
                           padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600,
-                          background: (DECISION_COLORS[evt.decisionInfo.decision.toUpperCase()] || '#64748b') + '25',
-                          color: DECISION_COLORS[evt.decisionInfo.decision.toUpperCase()] || '#64748b',
+                          background: (DECISION_COLORS[evt.decisionInfo.decision.toUpperCase()] || t.muted) + '25',
+                          color: DECISION_COLORS[evt.decisionInfo.decision.toUpperCase()] || t.muted,
                         }}>
                           {evt.decisionInfo.decision}
                         </span>
@@ -429,9 +430,9 @@ export default function CalendarPage() {
 // ---------------------------------------------------------------------------
 
 const navBtnStyle: React.CSSProperties = {
-  background: '#1e293b',
-  border: '1px solid #334155',
-  color: '#e2e8f0',
+  background: t.cardBg,
+  border: `1px solid ${t.cardBorder}`,
+  color: t.fg,
   borderRadius: 6,
   padding: '6px 12px',
   cursor: 'pointer',

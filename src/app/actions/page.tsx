@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { t } from '@/lib/theme';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -56,26 +57,26 @@ interface ActionsData {
 function getUrgencyStyle(urgency: string): { bg: string; color: string; label: string; pulse: boolean } {
   switch (urgency) {
     case 'NOW':
-      return { bg: 'rgba(239,68,68,0.2)', color: '#ef4444', label: 'NOW', pulse: true };
+      return { bg: 'rgba(239,68,68,0.2)', color: t.danger, label: 'NOW', pulse: true };
     case 'TODAY':
-      return { bg: 'rgba(245,158,11,0.2)', color: '#f59e0b', label: 'TODAY', pulse: false };
+      return { bg: 'rgba(245,158,11,0.2)', color: t.warning, label: 'TODAY', pulse: false };
     case 'THIS_WEEK':
-      return { bg: 'rgba(59,130,246,0.2)', color: '#3b82f6', label: 'THIS WEEK', pulse: false };
+      return { bg: 'rgba(59,130,246,0.2)', color: t.accent, label: 'THIS WEEK', pulse: false };
     default:
-      return { bg: 'rgba(100,116,139,0.2)', color: '#64748b', label: urgency, pulse: false };
+      return { bg: 'rgba(100,116,139,0.2)', color: t.muted, label: urgency, pulse: false };
   }
 }
 
 function getDecisionStyle(decision: string): { bg: string; color: string } {
   switch (decision.toUpperCase()) {
     case 'SAVED':
-      return { bg: 'rgba(34,197,94,0.15)', color: '#22c55e' };
+      return { bg: 'rgba(34,197,94,0.15)', color: t.success };
     case 'LOST':
-      return { bg: 'rgba(239,68,68,0.15)', color: '#ef4444' };
+      return { bg: 'rgba(239,68,68,0.15)', color: t.danger };
     case 'PENDING':
-      return { bg: 'rgba(245,158,11,0.15)', color: '#f59e0b' };
+      return { bg: 'rgba(245,158,11,0.15)', color: t.warning };
     default:
-      return { bg: 'rgba(100,116,139,0.15)', color: '#64748b' };
+      return { bg: 'rgba(100,116,139,0.15)', color: t.muted };
   }
 }
 
@@ -409,17 +410,17 @@ export default function ActionsPage() {
   }
 
   const groupColorMap: Record<string, string> = {
-    NOW: '#ef4444',
-    TODAY: '#f59e0b',
-    THIS_WEEK: '#3b82f6',
-    SAVED: '#22c55e',
-    LOST: '#ef4444',
-    PENDING: '#f59e0b',
-    Email: '#3b82f6',
+    NOW: t.danger,
+    TODAY: t.warning,
+    THIS_WEEK: t.accent,
+    SAVED: t.success,
+    LOST: t.danger,
+    PENDING: t.warning,
+    Email: t.accent,
     Internal: '#8b5cf6',
     Salesforce: '#06b6d4',
-    'Follow-up': '#f59e0b',
-    Meeting: '#22c55e',
+    'Follow-up': t.warning,
+    Meeting: t.success,
   };
 
   const renderActionList = (items: ActionItem[]) =>
@@ -516,7 +517,7 @@ export default function ActionsPage() {
             style={{
               width: `${progressPct}%`,
               height: '100%',
-              background: completedCount === totalCount ? '#22c55e' : '#3b82f6',
+              background: completedCount === totalCount ? t.success : t.accent,
               borderRadius: 4,
               transition: 'width 0.5s ease',
             }}
@@ -532,11 +533,11 @@ export default function ActionsPage() {
         onChange={(e) => setSearchQuery(e.target.value)}
         style={{
           width: '100%',
-          background: '#0f172a',
-          border: '1px solid #334155',
+          background: t.bg,
+          border: `1px solid ${t.cardBorder}`,
           borderRadius: 8,
           padding: '10px 14px',
-          color: '#e2e8f0',
+          color: t.fg,
           fontSize: 14,
           marginBottom: 16,
           outline: 'none',
@@ -554,17 +555,17 @@ export default function ActionsPage() {
           alignItems: 'center',
         }}
       >
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#94a3b8' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: t.textSecondary }}>
           Urgency
           <select
             value={filterUrgency}
             onChange={(e) => setFilterUrgency(e.target.value)}
             style={{
-              background: '#0f172a',
-              border: '1px solid #334155',
+              background: t.bg,
+              border: `1px solid ${t.cardBorder}`,
               borderRadius: 6,
               padding: '6px 10px',
-              color: '#e2e8f0',
+              color: t.fg,
               fontSize: 12,
               outline: 'none',
             }}
@@ -576,17 +577,17 @@ export default function ActionsPage() {
           </select>
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#94a3b8' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: t.textSecondary }}>
           Decision
           <select
             value={filterDecision}
             onChange={(e) => setFilterDecision(e.target.value)}
             style={{
-              background: '#0f172a',
-              border: '1px solid #334155',
+              background: t.bg,
+              border: `1px solid ${t.cardBorder}`,
               borderRadius: 6,
               padding: '6px 10px',
-              color: '#e2e8f0',
+              color: t.fg,
               fontSize: 12,
               outline: 'none',
             }}
@@ -598,17 +599,17 @@ export default function ActionsPage() {
           </select>
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#94a3b8' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: t.textSecondary }}>
           Category
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
             style={{
-              background: '#0f172a',
-              border: '1px solid #334155',
+              background: t.bg,
+              border: `1px solid ${t.cardBorder}`,
               borderRadius: 6,
               padding: '6px 10px',
-              color: '#e2e8f0',
+              color: t.fg,
               fontSize: 12,
               outline: 'none',
             }}
@@ -622,17 +623,17 @@ export default function ActionsPage() {
           </select>
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#94a3b8' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: t.textSecondary }}>
           Sort
           <select
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value)}
             style={{
-              background: '#0f172a',
-              border: '1px solid #334155',
+              background: t.bg,
+              border: `1px solid ${t.cardBorder}`,
               borderRadius: 6,
               padding: '6px 10px',
-              color: '#e2e8f0',
+              color: t.fg,
               fontSize: 12,
               outline: 'none',
             }}
@@ -644,17 +645,17 @@ export default function ActionsPage() {
           </select>
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#94a3b8' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: t.textSecondary }}>
           Group By
           <select
             value={groupBy}
             onChange={(e) => setGroupBy(e.target.value)}
             style={{
-              background: '#0f172a',
-              border: '1px solid #334155',
+              background: t.bg,
+              border: `1px solid ${t.cardBorder}`,
               borderRadius: 6,
               padding: '6px 10px',
-              color: '#e2e8f0',
+              color: t.fg,
               fontSize: 12,
               outline: 'none',
             }}
@@ -686,7 +687,7 @@ export default function ActionsPage() {
           <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
             Completed
           </div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#22c55e' }}>{completedCount}</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: t.success }}>{completedCount}</div>
         </div>
         <div className="card" style={{ padding: 16 }}>
           <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
@@ -695,22 +696,22 @@ export default function ActionsPage() {
           <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--foreground)' }}>{remainingCount}</div>
         </div>
         <div className="card" style={{ padding: 16 }}>
-          <div style={{ fontSize: 11, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+          <div style={{ fontSize: 11, color: t.danger, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
             NOW
           </div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#ef4444' }}>{nowCount}</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: t.danger }}>{nowCount}</div>
         </div>
         <div className="card" style={{ padding: 16 }}>
-          <div style={{ fontSize: 11, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+          <div style={{ fontSize: 11, color: t.warning, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
             Today
           </div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#f59e0b' }}>{todayCount}</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: t.warning }}>{todayCount}</div>
         </div>
         <div className="card" style={{ padding: 16 }}>
-          <div style={{ fontSize: 11, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+          <div style={{ fontSize: 11, color: t.accent, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
             This Week
           </div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#3b82f6' }}>{weekCount}</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: t.accent }}>{weekCount}</div>
         </div>
       </div>
 
@@ -735,10 +736,10 @@ export default function ActionsPage() {
             onClick={batchMarkComplete}
             style={{
               padding: '6px 16px',
-              background: '#3b82f6',
+              background: t.accent,
               border: 'none',
               borderRadius: 6,
-              color: '#fff',
+              color: 'white',
               fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',
@@ -765,12 +766,12 @@ export default function ActionsPage() {
                   gap: 8,
                   padding: '8px 14px',
                   marginBottom: 8,
-                  background: '#0f172a',
-                  borderLeft: `4px solid ${groupColorMap[groupLabel] || '#64748b'}`,
+                  background: t.bg,
+                  borderLeft: `4px solid ${groupColorMap[groupLabel] || t.muted}`,
                   borderRadius: 4,
                   fontSize: 13,
                   fontWeight: 700,
-                  color: groupColorMap[groupLabel] || '#94a3b8',
+                  color: groupColorMap[groupLabel] || t.textSecondary,
                 }}
               >
                 {groupLabel}
@@ -778,7 +779,7 @@ export default function ActionsPage() {
                   style={{
                     fontSize: 11,
                     fontWeight: 500,
-                    color: '#64748b',
+                    color: t.muted,
                   }}
                 >
                   ({items.length})
@@ -799,7 +800,7 @@ export default function ActionsPage() {
             style={{
               padding: 40,
               textAlign: 'center',
-              color: '#22c55e',
+              color: t.success,
               fontSize: 18,
               fontWeight: 600,
             }}
@@ -904,7 +905,7 @@ function ActionCard({
       style={{
         padding: 0,
         overflow: 'hidden',
-        borderLeft: `4px solid ${isCompleted ? '#334155' : urgency.color}`,
+        borderLeft: `4px solid ${isCompleted ? t.cardBorder : urgency.color}`,
       }}
     >
       <div
@@ -926,7 +927,7 @@ function ActionCard({
             height: 24,
             minWidth: 24,
             borderRadius: 6,
-            border: `2px solid ${selected ? '#3b82f6' : '#334155'}`,
+            border: `2px solid ${selected ? t.accent : t.cardBorder}`,
             background: selected ? 'rgba(59,130,246,0.2)' : 'transparent',
             cursor: 'pointer',
             display: 'flex',
@@ -945,7 +946,7 @@ function ActionCard({
               height="14"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#3b82f6"
+              stroke={t.accent}
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -967,7 +968,7 @@ function ActionCard({
             borderRadius: 8,
             fontSize: 18,
             fontWeight: 700,
-            color: isCompleted ? '#475569' : '#3b82f6',
+            color: isCompleted ? t.textTertiary : t.accent,
             flexShrink: 0,
           }}
         >
@@ -996,7 +997,7 @@ function ActionCard({
                 fontWeight: 700,
                 letterSpacing: '0.5px',
                 background: isCompleted ? 'rgba(100,116,139,0.15)' : urgency.bg,
-                color: isCompleted ? '#475569' : urgency.color,
+                color: isCompleted ? t.textTertiary : urgency.color,
               }}
             >
               {urgency.label}
@@ -1010,7 +1011,7 @@ function ActionCard({
                 fontSize: 10,
                 fontWeight: 700,
                 background: isCompleted ? 'rgba(100,116,139,0.15)' : decision.bg,
-                color: isCompleted ? '#475569' : decision.color,
+                color: isCompleted ? t.textTertiary : decision.color,
               }}
             >
               {action.decision}
@@ -1027,7 +1028,7 @@ function ActionCard({
                 fontSize: 10,
                 fontWeight: 600,
                 background: 'rgba(100,116,139,0.1)',
-                color: '#94a3b8',
+                color: t.textSecondary,
               }}
             >
               {getCategoryIcon(action.category)}
@@ -1038,7 +1039,7 @@ function ActionCard({
             <span
               style={{
                 fontSize: 11,
-                color: isCompleted ? '#475569' : '#94a3b8',
+                color: isCompleted ? t.textTertiary : t.textSecondary,
                 marginLeft: 'auto',
               }}
             >
@@ -1052,7 +1053,7 @@ function ActionCard({
               style={{
                 fontSize: 15,
                 fontWeight: 700,
-                color: isCompleted ? '#475569' : 'var(--foreground)',
+                color: isCompleted ? t.textTertiary : 'var(--foreground)',
                 textDecoration: isCompleted ? 'line-through' : 'none',
               }}
             >
@@ -1061,7 +1062,7 @@ function ActionCard({
             <span
               style={{
                 fontSize: 13,
-                color: isCompleted ? '#334155' : 'var(--muted)',
+                color: isCompleted ? t.cardBorder : 'var(--muted)',
                 marginLeft: 8,
               }}
             >
@@ -1074,7 +1075,7 @@ function ActionCard({
             style={{
               fontSize: 14,
               fontWeight: 600,
-              color: isCompleted ? '#475569' : '#e2e8f0',
+              color: isCompleted ? t.textTertiary : t.fg,
               textDecoration: isCompleted ? 'line-through' : 'none',
               marginBottom: 4,
               lineHeight: 1.4,
@@ -1089,10 +1090,10 @@ function ActionCard({
               style={{
                 fontSize: 12,
                 color: isCompleted
-                  ? '#475569'
+                  ? t.textTertiary
                   : action.decision === 'SAVED'
-                  ? '#22c55e'
-                  : '#f59e0b',
+                  ? t.success
+                  : t.warning,
                 fontWeight: 600,
                 marginBottom: 4,
               }}
@@ -1107,7 +1108,7 @@ function ActionCard({
             style={{
               background: 'none',
               border: 'none',
-              color: '#3b82f6',
+              color: t.accent,
               fontSize: 12,
               cursor: 'pointer',
               padding: '4px 0',
@@ -1142,17 +1143,17 @@ function ActionCard({
               style={{
                 marginTop: 8,
                 padding: 12,
-                background: '#0f172a',
+                background: t.bg,
                 borderRadius: 6,
                 fontSize: 13,
-                color: '#94a3b8',
+                color: t.textSecondary,
                 lineHeight: 1.6,
               }}
             >
               {action.details}
               {action.email && (
-                <div style={{ marginTop: 8, fontSize: 12, color: '#64748b' }}>
-                  Email: <a href={`mailto:${action.email}`} style={{ color: '#3b82f6', textDecoration: 'none' }}>{action.email}</a>
+                <div style={{ marginTop: 8, fontSize: 12, color: t.muted }}>
+                  Email: <a href={`mailto:${action.email}`} style={{ color: t.accent, textDecoration: 'none' }}>{action.email}</a>
                 </div>
               )}
             </div>
@@ -1183,13 +1184,13 @@ function ActionCard({
               width: 32,
               height: 32,
               borderRadius: 8,
-              border: `2px solid ${isCompleted ? '#22c55e' : '#334155'}`,
+              border: `2px solid ${isCompleted ? t.success : t.cardBorder}`,
               background: isCompleted ? 'rgba(34,197,94,0.2)' : 'transparent',
               cursor: updating ? 'wait' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#22c55e',
+              color: t.success,
               flexShrink: 0,
             }}
             title={isCompleted ? 'Mark incomplete' : 'Mark complete'}
@@ -1222,7 +1223,7 @@ function ActionCard({
                 background: 'rgba(59,130,246,0.15)',
                 border: '1px solid rgba(59,130,246,0.3)',
                 borderRadius: 6,
-                color: '#3b82f6',
+                color: t.accent,
                 fontSize: 11,
                 fontWeight: 600,
                 textDecoration: 'none',
@@ -1361,7 +1362,7 @@ function PostSaveNotesPanel({ notes, account }: { notes: PostSaveNotes; account:
                 background: copiedField === '__all__' ? 'rgba(34,197,94,0.2)' : 'rgba(124,58,237,0.2)',
                 border: `1px solid ${copiedField === '__all__' ? 'rgba(34,197,94,0.4)' : 'rgba(124,58,237,0.3)'}`,
                 borderRadius: 6,
-                color: copiedField === '__all__' ? '#22c55e' : '#a78bfa',
+                color: copiedField === '__all__' ? t.success : '#a78bfa',
                 fontSize: 11,
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -1390,10 +1391,10 @@ function PostSaveNotesPanel({ notes, account }: { notes: PostSaveNotes; account:
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: t.muted, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>
                       {label}
                     </div>
-                    <div style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                    <div style={{ fontSize: 12, color: t.cardBorder, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
                       {value}
                     </div>
                   </div>
@@ -1405,7 +1406,7 @@ function PostSaveNotesPanel({ notes, account }: { notes: PostSaveNotes; account:
                       background: isCopied ? 'rgba(34,197,94,0.2)' : 'rgba(100,116,139,0.15)',
                       border: `1px solid ${isCopied ? 'rgba(34,197,94,0.3)' : 'rgba(100,116,139,0.2)'}`,
                       borderRadius: 4,
-                      color: isCopied ? '#22c55e' : '#64748b',
+                      color: isCopied ? t.success : t.muted,
                       fontSize: 10,
                       fontWeight: 600,
                       cursor: 'pointer',

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { t } from '@/lib/theme';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -507,7 +508,7 @@ export default function TrackerPage() {
                   alignItems: 'flex-start',
                   gap: 14,
                   padding: '14px 16px',
-                  background: '#0f172a',
+                  background: t.bg,
                   borderRadius: 8,
                   border: '1px solid var(--card-border)',
                 }}
@@ -671,7 +672,7 @@ export default function TrackerPage() {
                   key={`${note.date}-${note.practiceName}-${idx}`}
                   style={{
                     padding: 16,
-                    background: '#0f172a',
+                    background: t.bg,
                     borderRadius: 8,
                     border: '1px solid var(--card-border)',
                   }}

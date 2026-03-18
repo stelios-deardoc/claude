@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { t } from '@/lib/theme';
 import { useCallTracker } from '@/lib/store';
 import { categorizeStatus, hasAccountingChanges, getInitials, parseDate } from '@/lib/call-utils';
 import type { Call } from '@/lib/types';
@@ -15,9 +16,9 @@ function fmtDate(d: string): string {
 }
 
 const statusColors: Record<string, string> = {
-  saved: '#22c55e',
-  lost: '#ef4444',
-  pending: '#f59e0b',
+  saved: t.success,
+  lost: t.danger,
+  pending: t.warning,
 };
 
 export default function NotesPage() {
@@ -66,9 +67,9 @@ export default function NotesPage() {
   };
 
   const toggleBtnStyle = (active: boolean): React.CSSProperties => ({
-    background: active ? '#3b82f620' : '#1e293b',
-    color: active ? '#3b82f6' : '#64748b',
-    border: `1px solid ${active ? '#3b82f6' : '#334155'}`,
+    background: active ? '#3b82f620' : t.cardBg,
+    color: active ? t.accent : t.muted,
+    border: `1px solid ${active ? t.accent : t.cardBorder}`,
     borderRadius: 6,
     padding: '6px 12px',
     fontSize: 13,
@@ -81,10 +82,10 @@ export default function NotesPage() {
     <div style={{ padding: '24px 0' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: t.fg, margin: 0 }}>
           Notes & Accounting
         </h1>
-        <span style={{ fontSize: 13, color: '#64748b' }}>
+        <span style={{ fontSize: 13, color: t.muted }}>
           {filtered.length} account{filtered.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -97,8 +98,8 @@ export default function NotesPage() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{
-            background: '#0f172a',
-            border: '1px solid #334155',
+            background: t.bg,
+            border: `1px solid ${t.cardBorder}`,
             borderRadius: 8,
             color: 'white',
             padding: '10px 14px',
@@ -116,8 +117,8 @@ export default function NotesPage() {
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
           style={{
-            background: '#0f172a',
-            border: '1px solid #334155',
+            background: t.bg,
+            border: `1px solid ${t.cardBorder}`,
             borderRadius: 8,
             color: 'white',
             padding: '10px 14px',
@@ -145,13 +146,13 @@ export default function NotesPage() {
 
       {/* Cards */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', color: '#64748b', padding: '60px 0', fontSize: 15 }}>
+        <div style={{ textAlign: 'center', color: t.muted, padding: '60px 0', fontSize: 15 }}>
           No notes found
         </div>
       ) : (
         filtered.map((call) => {
           const category = categorizeStatus(call.saveStatus, call.saveType);
-          const badgeColor = statusColors[category] || '#64748b';
+          const badgeColor = statusColors[category] || t.muted;
           const initials = getInitials(call.accountName);
           const notesText = call.notes || '';
           const isLong = notesText.length > 200;
@@ -162,8 +163,8 @@ export default function NotesPage() {
             <div
               key={call.id}
               style={{
-                background: '#0f172a',
-                border: '1px solid #1e293b',
+                background: t.bg,
+                border: `1px solid ${t.cardBg}`,
                 borderRadius: 10,
                 padding: 16,
                 marginBottom: 12,
@@ -178,11 +179,11 @@ export default function NotesPage() {
                     height: 48,
                     minWidth: 48,
                     borderRadius: '50%',
-                    background: '#334155',
+                    background: t.cardBorder,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#94a3b8',
+                    color: t.textSecondary,
                     fontWeight: 700,
                     fontSize: 15,
                   }}
@@ -198,7 +199,7 @@ export default function NotesPage() {
                         onClick={() => openCallModal(call.id)}
                         style={{
                           fontWeight: 600,
-                          color: '#f1f5f9',
+                          color: t.fg,
                           fontSize: 15,
                           cursor: 'pointer',
                           overflow: 'hidden',
@@ -209,7 +210,7 @@ export default function NotesPage() {
                         {call.accountName || 'Unnamed Account'}
                       </span>
                       {call.contactName && (
-                        <span style={{ color: '#64748b', fontSize: 13 }}>
+                        <span style={{ color: t.muted, fontSize: 13 }}>
                           {call.contactName}
                         </span>
                       )}
@@ -232,13 +233,13 @@ export default function NotesPage() {
 
                   {/* Notes */}
                   {notesText && (
-                    <div style={{ marginTop: 8, color: '#cbd5e1', fontSize: 13, lineHeight: 1.5 }}>
+                    <div style={{ marginTop: 8, color: t.cardBorder, fontSize: 13, lineHeight: 1.5 }}>
                       {isLong && !isExpanded ? notesText.slice(0, 200) + '...' : notesText}
                       {isLong && (
                         <span
                           onClick={() => toggleExpanded(call.id)}
                           style={{
-                            color: '#3b82f6',
+                            color: t.accent,
                             cursor: 'pointer',
                             marginLeft: 6,
                             fontSize: 12,
@@ -262,7 +263,7 @@ export default function NotesPage() {
                   {/* Accounting changes */}
                   {showAccounting && (
                     <div style={{ marginTop: 10 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: t.muted, textTransform: 'uppercase', marginBottom: 6 }}>
                         Accounting Changes
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -287,7 +288,7 @@ export default function NotesPage() {
                       </div>
 
                       {call.accountingNotes && (
-                        <div style={{ marginTop: 6, color: '#64748b', fontSize: 12, lineHeight: 1.4 }}>
+                        <div style={{ marginTop: 6, color: t.muted, fontSize: 12, lineHeight: 1.4 }}>
                           {call.accountingNotes}
                         </div>
                       )}
@@ -305,8 +306,8 @@ export default function NotesPage() {
 
 const pillStyle: React.CSSProperties = {
   fontSize: 11,
-  background: '#334155',
-  color: '#cbd5e1',
+  background: t.cardBorder,
+  color: t.cardBorder,
   padding: '3px 8px',
   borderRadius: 10,
   fontWeight: 500,

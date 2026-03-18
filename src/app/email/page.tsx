@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { t } from '@/lib/theme';
 import type { EmailWorkflowData } from '@/lib/types';
 import EmailList from '@/components/EmailList';
 import EmailDetail from '@/components/EmailDetail';
@@ -88,7 +89,7 @@ export default function EmailPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#64748b' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: t.muted }}>
         Loading...
       </div>
     );
@@ -96,12 +97,12 @@ export default function EmailPage() {
 
   if (!data || data.emails.length === 0) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#64748b', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', color: t.muted, gap: '12px' }}>
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
           <polyline points="22,6 12,13 2,6" />
         </svg>
-        <div style={{ fontSize: '16px', fontWeight: 600, color: '#e2e8f0' }}>Email Workflow</div>
+        <div style={{ fontSize: '16px', fontWeight: 600, color: t.fg }}>Email Workflow</div>
         <div style={{ fontSize: '13px', textAlign: 'center', maxWidth: '300px' }}>
           Run &quot;clean my inbox&quot; in Claude Code to process your emails and populate this dashboard.
         </div>
@@ -111,7 +112,7 @@ export default function EmailPage() {
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 48px)', margin: '-24px', overflow: 'hidden' }}>
-      <div style={{ width: selectedEmail ? '40%' : '100%', minWidth: '320px', transition: 'width 0.2s ease', borderRight: selectedEmail ? '1px solid #334155' : 'none' }}>
+      <div style={{ width: selectedEmail ? '40%' : '100%', minWidth: '320px', transition: 'width 0.2s ease', borderRight: selectedEmail ? `1px solid ${t.cardBorder}` : 'none' }}>
         <EmailList
           emails={data.emails}
           selectedId={selectedId}

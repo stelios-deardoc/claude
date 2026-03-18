@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { t } from '@/lib/theme';
 import { useCallTracker } from '@/lib/store';
 import {
   categorizeStatus,
@@ -42,10 +43,10 @@ function getDaysPending(call: Call): number {
 }
 
 function getDaysPendingColor(days: number): string {
-  if (days <= 3) return '#3b82f6';
-  if (days <= 7) return '#f59e0b';
+  if (days <= 3) return t.accent;
+  if (days <= 7) return t.warning;
   if (days <= 14) return '#f97316';
-  return '#ef4444';
+  return t.danger;
 }
 
 // Sparkline component for inline trend visualization
@@ -247,38 +248,38 @@ export default function Dashboard() {
   const maxDealValue = metrics.biggestDeals.length > 0 ? getContractValue(metrics.biggestDeals[0]) : 0;
 
   const cardStyle: React.CSSProperties = {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: t.cardBg,
+    border: `1px solid ${t.cardBorder}`,
     borderRadius: '12px',
     padding: '20px',
   };
 
   const miniStatStyle = (color: string): React.CSSProperties => ({
-    background: '#0f172a',
+    background: t.bg,
     borderRadius: '8px',
     padding: '12px',
     textAlign: 'center' as const,
   });
 
   return (
-    <div style={{ padding: '24px', minHeight: '100vh', background: '#0f172a' }}>
+    <div style={{ padding: '24px', minHeight: '100vh', background: t.bg }}>
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0, color: '#e2e8f0' }}>Command Center</h1>
-        <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0, color: t.fg }}>Command Center</h1>
+        <p style={{ fontSize: '13px', color: t.muted, margin: '4px 0 0' }}>
           {selectedMonth === 'all'
             ? `${calls.length} accounts loaded`
             : `${filteredCalls.length} accounts in ${getMonthLabel(selectedMonth)}`}
         </p>
         {syncStatus && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
-            <span style={{ fontSize: 12, color: '#64748b' }}>
+            <span style={{ fontSize: 12, color: t.muted }}>
               {syncStatus.lastSyncedAt
                 ? `Last sync: ${new Date(syncStatus.lastSyncedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
                 : 'Not synced yet'}
             </span>
             {syncStatus.reviewCount > 0 && (
-              <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>
+              <span style={{ fontSize: 12, color: t.warning, fontWeight: 600 }}>
                 {syncStatus.reviewCount} items to review
               </span>
             )}
@@ -298,8 +299,8 @@ export default function Dashboard() {
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s',
-                background: selectedMonth === item.key ? '#6366f1' : '#1e293b',
-                color: selectedMonth === item.key ? '#fff' : '#94a3b8',
+                background: selectedMonth === item.key ? '#6366f1' : t.cardBg,
+                color: selectedMonth === item.key ? '#fff' : t.textSecondary,
               }}
             >
               {item.label}
@@ -312,7 +313,7 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '20px' }}>
 
         {/* Save Rate Donut */}
-        <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #064e3b, #065f46)', border: '1px solid #10b981', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #064e3b, #065f46)', border: `1px solid ${t.success}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ fontSize: '12px', color: '#6ee7b7', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Commission Save Rate</div>
           <div style={{ position: 'relative', width: donutSize, height: donutSize }}>
             <svg width={donutSize} height={donutSize} style={{ transform: 'rotate(-90deg)' }}>
@@ -322,7 +323,7 @@ export default function Dashboard() {
                 cy={donutSize / 2}
                 r={radius}
                 fill="none"
-                stroke="#334155"
+                stroke={t.cardBorder}
                 strokeWidth={strokeWidth}
               />
               {/* Value arc */}
@@ -331,7 +332,7 @@ export default function Dashboard() {
                 cy={donutSize / 2}
                 r={radius}
                 fill="none"
-                stroke="#22c55e"
+                stroke={t.success}
                 strokeWidth={strokeWidth}
                 strokeDasharray={circumference}
                 strokeDashoffset={donutOffset}
@@ -348,7 +349,7 @@ export default function Dashboard() {
                   const curMrr = monthlyData[curIdx].mrrSaveRate;
                   const prevMrr = monthlyData[curIdx - 1].mrrSaveRate;
                   const delta = curMrr - prevMrr;
-                  const deltaColor = delta >= 0 ? '#22c55e' : '#ef4444';
+                  const deltaColor = delta >= 0 ? t.success : t.danger;
                   const sign = delta >= 0 ? '+' : '';
                   return (
                     <span style={{ fontSize: '9px', color: deltaColor, fontWeight: 600, marginTop: '2px' }}>
@@ -370,55 +371,55 @@ export default function Dashboard() {
 
         {/* Revenue Impact */}
         <div style={cardStyle}>
-          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Revenue Impact</div>
+          <div style={{ fontSize: '12px', color: t.muted, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Revenue Impact</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            <div style={miniStatStyle('#22c55e')}>
-              <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>Saved MRR</div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#22c55e' }}>{formatCurrency(metrics.totalSaved)}</div>
-              <Sparkline data={monthlyData.map(m => m.savedMRR)} color="#22c55e" />
+            <div style={miniStatStyle(t.success)}>
+              <div style={{ fontSize: '11px', color: t.muted, marginBottom: '4px', textTransform: 'uppercase' }}>Saved MRR</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: t.success }}>{formatCurrency(metrics.totalSaved)}</div>
+              <Sparkline data={monthlyData.map(m => m.savedMRR)} color={t.success} />
             </div>
-            <div style={miniStatStyle('#ef4444')}>
-              <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>Lost MRR</div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#ef4444' }}>{formatCurrency(metrics.totalLost)}</div>
-              <Sparkline data={monthlyData.map(m => m.lostMRR)} color="#ef4444" />
+            <div style={miniStatStyle(t.danger)}>
+              <div style={{ fontSize: '11px', color: t.muted, marginBottom: '4px', textTransform: 'uppercase' }}>Lost MRR</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: t.danger }}>{formatCurrency(metrics.totalLost)}</div>
+              <Sparkline data={monthlyData.map(m => m.lostMRR)} color={t.danger} />
             </div>
-            <div style={miniStatStyle('#f59e0b')}>
-              <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>Pending MRR</div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#f59e0b' }}>{formatCurrency(metrics.totalPendingMRR)}</div>
-              <Sparkline data={monthlyData.map(m => m.pendingMRR)} color="#f59e0b" />
+            <div style={miniStatStyle(t.warning)}>
+              <div style={{ fontSize: '11px', color: t.muted, marginBottom: '4px', textTransform: 'uppercase' }}>Pending MRR</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: t.warning }}>{formatCurrency(metrics.totalPendingMRR)}</div>
+              <Sparkline data={monthlyData.map(m => m.pendingMRR)} color={t.warning} />
             </div>
-            <div style={miniStatStyle(metrics.netImpact >= 0 ? '#3b82f6' : '#ef4444')}>
-              <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>Net Impact</div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: metrics.netImpact >= 0 ? '#3b82f6' : '#ef4444' }}>{formatCurrency(metrics.netImpact)}</div>
-              <Sparkline data={monthlyData.map(m => m.savedMRR - m.lostMRR)} color="#3b82f6" />
+            <div style={miniStatStyle(metrics.netImpact >= 0 ? t.accent : t.danger)}>
+              <div style={{ fontSize: '11px', color: t.muted, marginBottom: '4px', textTransform: 'uppercase' }}>Net Impact</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, color: metrics.netImpact >= 0 ? t.accent : t.danger }}>{formatCurrency(metrics.netImpact)}</div>
+              <Sparkline data={monthlyData.map(m => m.savedMRR - m.lostMRR)} color={t.accent} />
             </div>
           </div>
         </div>
 
         {/* Commission Snapshot */}
         <div style={cardStyle}>
-          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Commission Snapshot</div>
+          <div style={{ fontSize: '12px', color: t.muted, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Commission Snapshot</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: '#e2e8f0' }}>{CDP_LEVELS[selectedCdpLevel].name}</span>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>Save Rate: {metrics.commSaveRate}%</span>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: t.fg }}>{CDP_LEVELS[selectedCdpLevel].name}</span>
+            <span style={{ fontSize: '12px', color: t.muted }}>Save Rate: {metrics.commSaveRate}%</span>
           </div>
-          <div style={{ background: '#0f172a', borderRadius: '8px', padding: '14px', marginBottom: '12px' }}>
+          <div style={{ background: t.bg, borderRadius: '8px', padding: '14px', marginBottom: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Current Tier</span>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>{metrics.matchedTier.saveRate}% save rate</span>
+              <span style={{ fontSize: '11px', color: t.muted, textTransform: 'uppercase' }}>Current Tier</span>
+              <span style={{ fontSize: '11px', color: t.muted }}>{metrics.matchedTier.saveRate}% save rate</span>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: '#22c55e', marginBottom: '2px' }}>{metrics.matchedTier.revenuePercent}%</div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Revenue Commission</div>
+            <div style={{ fontSize: '24px', fontWeight: 700, color: t.success, marginBottom: '2px' }}>{metrics.matchedTier.revenuePercent}%</div>
+            <div style={{ fontSize: '11px', color: t.muted }}>Revenue Commission</div>
           </div>
           {/* Progress to next tier */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>
+              <span style={{ fontSize: '11px', color: t.muted }}>
                 {metrics.nextTier ? `Next: ${metrics.nextTier.saveRate}% - ${metrics.nextTier.revenuePercent}%` : 'Max tier reached'}
               </span>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>{Math.round(progressToNext)}%</span>
+              <span style={{ fontSize: '11px', color: t.muted }}>{Math.round(progressToNext)}%</span>
             </div>
-            <div style={{ height: '6px', background: '#0f172a', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ height: '6px', background: t.bg, borderRadius: '3px', overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${progressToNext}%`, background: 'linear-gradient(90deg, #3b82f6, #6366f1)', borderRadius: '3px', transition: 'width 0.3s ease' }} />
             </div>
           </div>
@@ -428,12 +429,12 @@ export default function Dashboard() {
       {/* 6-Month Trend Chart */}
       <div style={{ ...cardStyle, marginBottom: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>6-Month Trend</div>
+          <div style={{ fontSize: '12px', color: t.muted, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>6-Month Trend</div>
           <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: 2, background: '#22c55e' }} /><span style={{ fontSize: 11, color: '#94a3b8' }}>Saved</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: 2, background: '#ef4444' }} /><span style={{ fontSize: 11, color: '#94a3b8' }}>Lost</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: 2, background: '#f59e0b' }} /><span style={{ fontSize: 11, color: '#94a3b8' }}>Pending</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 3, borderRadius: 1, background: '#6366f1' }} /><span style={{ fontSize: 11, color: '#94a3b8' }}>MRR Save Rate</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: 2, background: t.success }} /><span style={{ fontSize: 11, color: t.textSecondary }}>Saved</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: 2, background: t.danger }} /><span style={{ fontSize: 11, color: t.textSecondary }}>Lost</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, borderRadius: 2, background: t.warning }} /><span style={{ fontSize: 11, color: t.textSecondary }}>Pending</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 3, borderRadius: 1, background: '#6366f1' }} /><span style={{ fontSize: 11, color: t.textSecondary }}>MRR Save Rate</span></div>
           </div>
         </div>
         {(() => {
@@ -456,8 +457,8 @@ export default function Dashboard() {
                 const y = padT + plotH - (pct / 100) * plotH;
                 return (
                   <g key={pct}>
-                    <line x1={padL} y1={y} x2={chartW - padR} y2={y} stroke="#334155" strokeWidth="0.5" strokeDasharray={pct === 0 ? '' : '4,4'} />
-                    <text x={padL - 6} y={y + 3} fill="#64748b" fontSize="9" textAnchor="end">{pct}%</text>
+                    <line x1={padL} y1={y} x2={chartW - padR} y2={y} stroke={t.cardBorder} strokeWidth="0.5" strokeDasharray={pct === 0 ? '' : '4,4'} />
+                    <text x={padL - 6} y={y + 3} fill={t.muted} fontSize="9" textAnchor="end">{pct}%</text>
                   </g>
                 );
               })}
@@ -475,17 +476,17 @@ export default function Dashboard() {
                 return (
                   <g key={m.key}>
                     {/* Stacked bars: saved (bottom), lost (middle), pending (top) */}
-                    {savedH > 0 && <rect x={bx} y={baseY - savedH} width={barW} height={savedH} fill="#22c55e" rx="2" />}
-                    {lostH > 0 && <rect x={bx} y={baseY - savedH - lostH} width={barW} height={lostH} fill="#ef4444" rx="2" />}
-                    {pendingH > 0 && <rect x={bx} y={baseY - savedH - lostH - pendingH} width={barW} height={pendingH} fill="#f59e0b" rx="2" />}
+                    {savedH > 0 && <rect x={bx} y={baseY - savedH} width={barW} height={savedH} fill={t.success} rx="2" />}
+                    {lostH > 0 && <rect x={bx} y={baseY - savedH - lostH} width={barW} height={lostH} fill={t.danger} rx="2" />}
+                    {pendingH > 0 && <rect x={bx} y={baseY - savedH - lostH - pendingH} width={barW} height={pendingH} fill={t.warning} rx="2" />}
                     {/* Rate label above bars */}
                     {m.total > 0 && (
-                      <text x={cx} y={baseY - totalH - 6} fill="#e2e8f0" fontSize="9" textAnchor="middle" fontWeight="600">{m.saveRate}%</text>
+                      <text x={cx} y={baseY - totalH - 6} fill={t.fg} fontSize="9" textAnchor="middle" fontWeight="600">{m.saveRate}%</text>
                     )}
                     {/* X-axis month label */}
-                    <text x={cx} y={baseY + 14} fill="#94a3b8" fontSize="10" textAnchor="middle">{shortLabel}</text>
+                    <text x={cx} y={baseY + 14} fill={t.textSecondary} fontSize="10" textAnchor="middle">{shortLabel}</text>
                     {/* Total count below */}
-                    <text x={cx} y={baseY + 26} fill="#64748b" fontSize="8" textAnchor="middle">{m.total}</text>
+                    <text x={cx} y={baseY + 26} fill={t.muted} fontSize="8" textAnchor="middle">{m.total}</text>
                   </g>
                 );
               })}
@@ -502,7 +503,7 @@ export default function Dashboard() {
                   <>
                     <polyline points={linePoints} fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     {pts.map((p, i) => (
-                      <circle key={i} cx={p.x} cy={p.y} r="3" fill="#6366f1" stroke="#0f172a" strokeWidth="1.5" />
+                      <circle key={i} cx={p.x} cy={p.y} r="3" fill="#6366f1" stroke={t.bg} strokeWidth="1.5" />
                     ))}
                   </>
                 );
@@ -517,41 +518,41 @@ export default function Dashboard() {
 
         {/* Pending Urgency Breakdown */}
         <div style={cardStyle}>
-          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Pending Urgency Breakdown</div>
+          <div style={{ fontSize: '12px', color: t.muted, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Pending Urgency Breakdown</div>
           {totalPending === 0 ? (
-            <div style={{ textAlign: 'center', padding: '16px', color: '#64748b', fontSize: '13px' }}>No pending accounts</div>
+            <div style={{ textAlign: 'center', padding: '16px', color: t.muted, fontSize: '13px' }}>No pending accounts</div>
           ) : (
             <>
               <svg width="100%" height="32" style={{ borderRadius: '6px', overflow: 'hidden', display: 'block' }}>
                 {earlyPct > 0 && (
-                  <rect x="0%" y="0" width={`${earlyPct}%`} height="32" fill="#3b82f6" />
+                  <rect x="0%" y="0" width={`${earlyPct}%`} height="32" fill={t.accent} />
                 )}
                 {midPct > 0 && (
-                  <rect x={`${earlyPct}%`} y="0" width={`${midPct}%`} height="32" fill="#f59e0b" />
+                  <rect x={`${earlyPct}%`} y="0" width={`${midPct}%`} height="32" fill={t.warning} />
                 )}
                 {latePct > 0 && (
                   <rect x={`${earlyPct + midPct}%`} y="0" width={`${latePct}%`} height="32" fill="#f97316" />
                 )}
                 {overduePct > 0 && (
-                  <rect x={`${earlyPct + midPct + latePct}%`} y="0" width={`${overduePct}%`} height="32" fill="#ef4444" />
+                  <rect x={`${earlyPct + midPct + latePct}%`} y="0" width={`${overduePct}%`} height="32" fill={t.danger} />
                 )}
               </svg>
               <div style={{ display: 'flex', gap: '16px', marginTop: '12px', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#3b82f6' }} />
-                  <span style={{ fontSize: '12px', color: '#e2e8f0' }}>0-3 days ({metrics.urgencyBuckets.early})</span>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: t.accent }} />
+                  <span style={{ fontSize: '12px', color: t.fg }}>0-3 days ({metrics.urgencyBuckets.early})</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#f59e0b' }} />
-                  <span style={{ fontSize: '12px', color: '#e2e8f0' }}>4-7 days ({metrics.urgencyBuckets.mid})</span>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: t.warning }} />
+                  <span style={{ fontSize: '12px', color: t.fg }}>4-7 days ({metrics.urgencyBuckets.mid})</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#f97316' }} />
-                  <span style={{ fontSize: '12px', color: '#e2e8f0' }}>8-14 days ({metrics.urgencyBuckets.late})</span>
+                  <span style={{ fontSize: '12px', color: t.fg }}>8-14 days ({metrics.urgencyBuckets.late})</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#ef4444' }} />
-                  <span style={{ fontSize: '12px', color: '#e2e8f0' }}>14+ days ({metrics.urgencyBuckets.overdue})</span>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: t.danger }} />
+                  <span style={{ fontSize: '12px', color: t.fg }}>14+ days ({metrics.urgencyBuckets.overdue})</span>
                 </div>
               </div>
             </>
@@ -560,31 +561,31 @@ export default function Dashboard() {
 
         {/* Quick Stats */}
         <div style={cardStyle}>
-          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Quick Stats</div>
+          <div style={{ fontSize: '12px', color: t.muted, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Quick Stats</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <div style={{ background: '#0f172a', borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>Saved pts</span>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#22c55e' }}>{metrics.countableSaved}</span>
+            <div style={{ background: t.bg, borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', color: t.muted }}>Saved pts</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: t.success }}>{metrics.countableSaved}</span>
             </div>
-            <div style={{ background: '#0f172a', borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>Lost pts</span>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#ef4444' }}>{metrics.countableLost}</span>
+            <div style={{ background: t.bg, borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', color: t.muted }}>Lost pts</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: t.danger }}>{metrics.countableLost}</span>
             </div>
-            <div style={{ background: '#0f172a', borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>Pending pts</span>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#f59e0b' }}>{metrics.countablePending}</span>
+            <div style={{ background: t.bg, borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', color: t.muted }}>Pending pts</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: t.warning }}>{metrics.countablePending}</span>
             </div>
-            <div style={{ background: '#0f172a', borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>Bad Standing</span>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#ef4444' }}>{metrics.totalBadStandingAffected}</span>
+            <div style={{ background: t.bg, borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', color: t.muted }}>Bad Standing</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: t.danger }}>{metrics.totalBadStandingAffected}</span>
             </div>
-            <div style={{ background: '#0f172a', borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>Guarantee Excl.</span>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#f59e0b' }}>{metrics.fullyExcludedLost}</span>
+            <div style={{ background: t.bg, borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', color: t.muted }}>Guarantee Excl.</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: t.warning }}>{metrics.fullyExcludedLost}</span>
             </div>
-            <div style={{ background: '#0f172a', borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>Good Standing</span>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#22c55e' }}>{metrics.goodStanding}</span>
+            <div style={{ background: t.bg, borderRadius: '6px', padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', color: t.muted }}>Good Standing</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: t.success }}>{metrics.goodStanding}</span>
             </div>
           </div>
         </div>
@@ -594,9 +595,9 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '20px' }}>
         <button
           onClick={() => openImportModal()}
-          style={{ ...cardStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', border: '1px solid #334155', fontSize: '14px', fontWeight: 600, color: '#e2e8f0', transition: 'background 0.15s, border-color 0.15s' }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#334155'; e.currentTarget.style.borderColor = '#475569'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.borderColor = '#334155'; }}
+          style={{ ...cardStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', border: `1px solid ${t.cardBorder}`, fontSize: '14px', fontWeight: 600, color: t.fg, transition: 'background 0.15s, border-color 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = t.cardBorder; e.currentTarget.style.borderColor = t.textTertiary; }}
+          onMouseLeave={e => { e.currentTarget.style.background = t.cardBg; e.currentTarget.style.borderColor = t.cardBorder; }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -607,9 +608,9 @@ export default function Dashboard() {
         </button>
         <button
           onClick={() => openCallModal()}
-          style={{ ...cardStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', border: '1px solid #334155', fontSize: '14px', fontWeight: 600, color: '#e2e8f0', transition: 'background 0.15s, border-color 0.15s' }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#334155'; e.currentTarget.style.borderColor = '#475569'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.borderColor = '#334155'; }}
+          style={{ ...cardStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', border: `1px solid ${t.cardBorder}`, fontSize: '14px', fontWeight: 600, color: t.fg, transition: 'background 0.15s, border-color 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = t.cardBorder; e.currentTarget.style.borderColor = t.textTertiary; }}
+          onMouseLeave={e => { e.currentTarget.style.background = t.cardBg; e.currentTarget.style.borderColor = t.cardBorder; }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -619,9 +620,9 @@ export default function Dashboard() {
         </button>
         <button
           onClick={() => router.push('/list')}
-          style={{ ...cardStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', border: '1px solid #334155', fontSize: '14px', fontWeight: 600, color: '#e2e8f0', transition: 'background 0.15s, border-color 0.15s' }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#334155'; e.currentTarget.style.borderColor = '#475569'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.borderColor = '#334155'; }}
+          style={{ ...cardStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', border: `1px solid ${t.cardBorder}`, fontSize: '14px', fontWeight: 600, color: t.fg, transition: 'background 0.15s, border-color 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = t.cardBorder; e.currentTarget.style.borderColor = t.textTertiary; }}
+          onMouseLeave={e => { e.currentTarget.style.background = t.cardBg; e.currentTarget.style.borderColor = t.cardBorder; }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="8" y1="6" x2="21" y2="6" />
@@ -640,33 +641,33 @@ export default function Dashboard() {
 
         {/* Accounts Needing Attention */}
         <div style={cardStyle}>
-          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Accounts Needing Attention</div>
+          <div style={{ fontSize: '12px', color: t.muted, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Accounts Needing Attention</div>
           {metrics.topSuggestions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '32px 20px', color: '#64748b', fontSize: '13px' }}>No pending accounts with actionable suggestions</div>
+            <div style={{ textAlign: 'center', padding: '32px 20px', color: t.muted, fontSize: '13px' }}>No pending accounts with actionable suggestions</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {metrics.topSuggestions.map(item => {
                 const days = item.daysPending;
                 const dayColor = getDaysPendingColor(days);
-                const priorityColor = item.priority === 'high' ? '#ef4444' : item.priority === 'medium' ? '#f59e0b' : '#3b82f6';
+                const priorityColor = item.priority === 'high' ? t.danger : item.priority === 'medium' ? t.warning : t.accent;
                 return (
                   <div
                     key={item.accountId}
                     onClick={() => openCallModal(item.accountId)}
-                    style={{ background: '#0f172a', borderRadius: '8px', padding: '12px 14px', cursor: 'pointer', transition: 'background 0.15s', border: '1px solid transparent' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.borderColor = '#475569'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#0f172a'; e.currentTarget.style.borderColor = 'transparent'; }}
+                    style={{ background: t.bg, borderRadius: '8px', padding: '12px 14px', cursor: 'pointer', transition: 'background 0.15s', border: '1px solid transparent' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = t.cardBg; e.currentTarget.style.borderColor = t.textTertiary; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = t.bg; e.currentTarget.style.borderColor = 'transparent'; }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: 700, color: '#e2e8f0' }}>{item.accountName}</span>
+                        <span style={{ fontSize: '14px', fontWeight: 700, color: t.fg }}>{item.accountName}</span>
                         {item.contactName && (
-                          <span style={{ fontSize: '12px', color: '#64748b' }}>{item.contactName}</span>
+                          <span style={{ fontSize: '12px', color: t.muted }}>{item.contactName}</span>
                         )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {item.contractValue > 0 && (
-                          <span style={{ fontSize: '11px', fontWeight: 600, color: '#22c55e', background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 600, color: t.success, background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
                             {formatCurrency(item.contractValue)}
                           </span>
                         )}
@@ -678,7 +679,7 @@ export default function Dashboard() {
                         </span>
                       </div>
                     </div>
-                    <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+                    <div style={{ fontSize: '13px', color: t.textSecondary }}>
                       {item.suggestion}
                     </div>
                   </div>
@@ -694,11 +695,11 @@ export default function Dashboard() {
           {/* Biggest Deals */}
           <div style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Biggest Deals</div>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>Top 3 saved</span>
+              <div style={{ fontSize: '12px', color: t.muted, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Biggest Deals</div>
+              <span style={{ fontSize: '11px', color: t.muted }}>Top 3 saved</span>
             </div>
             {metrics.biggestDeals.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '20px', color: '#64748b', fontSize: '13px' }}>No saved deals yet</div>
+              <div style={{ textAlign: 'center', padding: '20px', color: t.muted, fontSize: '13px' }}>No saved deals yet</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {metrics.biggestDeals.map((deal, idx) => {
@@ -709,18 +710,18 @@ export default function Dashboard() {
                     <div
                       key={deal.id}
                       onClick={() => openCallModal(deal.id)}
-                      style={{ cursor: 'pointer', padding: '8px 10px', background: '#0f172a', borderRadius: '6px', transition: 'background 0.15s' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#1e293b'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = '#0f172a'; }}
+                      style={{ cursor: 'pointer', padding: '8px 10px', background: t.bg, borderRadius: '6px', transition: 'background 0.15s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = t.cardBg; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = t.bg; }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>#{idx + 1}</span>
-                          <span style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0' }}>{truncatedName}</span>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: t.muted }}>#{idx + 1}</span>
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: t.fg }}>{truncatedName}</span>
                         </div>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e' }}>{formatCurrency(value)}</span>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: t.success }}>{formatCurrency(value)}</span>
                       </div>
-                      <div style={{ height: '4px', background: '#1e293b', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ height: '4px', background: t.cardBg, borderRadius: '2px', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${barWidth}%`, background: 'linear-gradient(90deg, #10b981, #34d399)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
                       </div>
                     </div>
@@ -733,34 +734,34 @@ export default function Dashboard() {
           {/* Recent Activity */}
           <div style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Recent Activity</div>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>Last 3</span>
+              <div style={{ fontSize: '12px', color: t.muted, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Recent Activity</div>
+              <span style={{ fontSize: '11px', color: t.muted }}>Last 3</span>
             </div>
             {metrics.recentActivity.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '20px', color: '#64748b', fontSize: '13px' }}>No activity yet</div>
+              <div style={{ textAlign: 'center', padding: '20px', color: t.muted, fontSize: '13px' }}>No activity yet</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {metrics.recentActivity.map(call => {
                   const category = categorizeStatus(call.saveStatus, call.saveType);
-                  const badgeColor = category === 'saved' ? '#22c55e' : category === 'lost' ? '#ef4444' : category === 'pending' ? '#f59e0b' : '#64748b';
+                  const badgeColor = category === 'saved' ? t.success : category === 'lost' ? t.danger : category === 'pending' ? t.warning : t.muted;
                   const notesPreview = (call.notes || call.accountingNotes || '').slice(0, 50);
                   return (
                     <div
                       key={call.id}
                       onClick={() => openCallModal(call.id)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', background: '#0f172a', borderRadius: '6px', cursor: 'pointer', transition: 'background 0.15s' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#1e293b'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = '#0f172a'; }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', background: t.bg, borderRadius: '6px', cursor: 'pointer', transition: 'background 0.15s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = t.cardBg; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = t.bg; }}
                     >
-                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 600, color: '#e2e8f0', flexShrink: 0 }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: t.cardBorder, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 600, color: t.fg, flexShrink: 0 }}>
                         {getInitials(call.accountName)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 600, color: t.fg, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {call.accountName}
                         </div>
                         {notesPreview && (
-                          <div style={{ fontSize: '11px', color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                          <div style={{ fontSize: '11px', color: t.textTertiary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
                             {notesPreview}{notesPreview.length >= 50 ? '...' : ''}
                           </div>
                         )}

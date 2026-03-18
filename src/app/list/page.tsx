@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { t } from '@/lib/theme';
 import { useCallTracker } from '@/lib/store';
 import { categorizeStatus, getStandingCategory, hasGuaranteeIssue, getInitials, getCallMonth, getMonthLabel, getLast6Months, getCurrentMonth } from '@/lib/call-utils';
 import type { Call, SortOption } from '@/lib/types';
@@ -98,16 +99,16 @@ export default function ListPage() {
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
         <button onClick={() => setSelectedMonth('all')} style={{
           padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-          border: selectedMonth === 'all' ? '1px solid #3b82f6' : '1px solid #334155',
+          border: selectedMonth === 'all' ? `1px solid ${t.accent}` : `1px solid ${t.cardBorder}`,
           background: selectedMonth === 'all' ? 'rgba(59,130,246,0.15)' : 'transparent',
-          color: selectedMonth === 'all' ? '#3b82f6' : '#64748b', cursor: 'pointer',
+          color: selectedMonth === 'all' ? t.accent : t.muted, cursor: 'pointer',
         }}>All Time</button>
         {months.map(m => (
           <button key={m} onClick={() => setSelectedMonth(m)} style={{
             padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-            border: selectedMonth === m ? '1px solid #3b82f6' : '1px solid #334155',
+            border: selectedMonth === m ? `1px solid ${t.accent}` : `1px solid ${t.cardBorder}`,
             background: selectedMonth === m ? 'rgba(59,130,246,0.15)' : 'transparent',
-            color: selectedMonth === m ? '#3b82f6' : '#64748b', cursor: 'pointer',
+            color: selectedMonth === m ? t.accent : t.muted, cursor: 'pointer',
           }}>
             {getMonthLabel(m)}{m === currentMonth ? ' *' : ''}
           </button>
@@ -117,8 +118,8 @@ export default function ListPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>All Saves</h1>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: t.fg, margin: 0 }}>All Saves</h1>
+          <div style={{ fontSize: 13, color: t.textSecondary, marginTop: 2 }}>
             {selectedMonth === 'all'
               ? `${filteredAndSorted.length} calls`
               : `${filteredAndSorted.length} of ${calls.length} calls - ${getMonthLabel(selectedMonth)}`}
@@ -131,8 +132,8 @@ export default function ListPage() {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
-              background: '#0f172a',
-              border: '1px solid #334155',
+              background: t.bg,
+              border: `1px solid ${t.cardBorder}`,
               borderRadius: 6,
               color: 'white',
               padding: '8px 12px',
@@ -145,8 +146,8 @@ export default function ListPage() {
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
             style={{
-              background: '#0f172a',
-              border: '1px solid #1e293b',
+              background: t.bg,
+              border: `1px solid ${t.cardBg}`,
               color: 'white',
               padding: '8px 12px',
               borderRadius: '8px',
@@ -165,8 +166,8 @@ export default function ListPage() {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
             style={{
-              background: '#0f172a',
-              border: '1px solid #1e293b',
+              background: t.bg,
+              border: `1px solid ${t.cardBg}`,
               color: 'white',
               padding: '8px 12px',
               borderRadius: '8px',
@@ -189,10 +190,10 @@ export default function ListPage() {
             display: 'grid',
             gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 0.5fr',
             padding: '12px 16px',
-            borderBottom: '1px solid #1e293b',
+            borderBottom: `1px solid ${t.cardBg}`,
             fontSize: '12px',
             fontWeight: 600,
-            color: '#94a3b8',
+            color: t.textSecondary,
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
           }}
@@ -211,7 +212,7 @@ export default function ListPage() {
             style={{
               padding: '48px 16px',
               textAlign: 'center',
-              color: '#64748b',
+              color: t.muted,
               fontSize: '14px',
             }}
           >
@@ -235,7 +236,7 @@ export default function ListPage() {
                   alignItems: 'center',
                   cursor: 'pointer',
                   fontSize: '13px',
-                  color: '#e2e8f0',
+                  color: t.fg,
                   transition: 'background 0.15s',
                 }}
                 onMouseEnter={(e) => {
@@ -252,13 +253,13 @@ export default function ListPage() {
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
-                      background: '#334155',
+                      background: t.cardBorder,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '11px',
                       fontWeight: 600,
-                      color: '#94a3b8',
+                      color: t.textSecondary,
                       flexShrink: 0,
                     }}
                   >
@@ -266,12 +267,12 @@ export default function ListPage() {
                   </div>
                   <div>
                     <div style={{ fontWeight: 500 }}>{call.accountName || 'Unknown Account'}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>{call.contactName || '-'}</div>
+                    <div style={{ fontSize: '11px', color: t.muted }}>{call.contactName || '-'}</div>
                   </div>
                 </div>
 
                 {/* Save Type */}
-                <span style={{ color: '#94a3b8' }}>{call.saveType || '-'}</span>
+                <span style={{ color: t.textSecondary }}>{call.saveType || '-'}</span>
 
                 {/* Status */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -279,21 +280,21 @@ export default function ListPage() {
                     {category.charAt(0).toUpperCase() + category.slice(1)}
                   </span>
                   {guarantee && (
-                    <span title="Guarantee Issue" style={{ color: '#f59e0b', fontSize: '14px' }}>
+                    <span title="Guarantee Issue" style={{ color: t.warning, fontSize: '14px' }}>
                       &#9888;
                     </span>
                   )}
                 </div>
 
                 {/* Billing */}
-                <span style={{ color: '#94a3b8' }}>
+                <span style={{ color: t.textSecondary }}>
                   ${parseFloat(call.ratePerMonth || '0').toFixed(2)}/{call.billingFrequency || 'mo'}
                 </span>
 
                 {/* Standing */}
                 <span
                   style={{
-                    color: standing === 'good' ? '#4ade80' : standing === 'bad' ? '#f87171' : '#64748b',
+                    color: standing === 'good' ? '#4ade80' : standing === 'bad' ? '#f87171' : t.muted,
                     fontWeight: 500,
                     fontSize: '12px',
                   }}
@@ -313,9 +314,9 @@ export default function ListPage() {
                       openCallModal(call.id);
                     }}
                     style={{
-                      background: '#1e293b',
-                      border: '1px solid #334155',
-                      color: '#94a3b8',
+                      background: t.cardBg,
+                      border: `1px solid ${t.cardBorder}`,
+                      color: t.textSecondary,
                       padding: '4px 10px',
                       borderRadius: '6px',
                       cursor: 'pointer',
@@ -323,10 +324,10 @@ export default function ListPage() {
                       transition: 'background 0.15s',
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.background = '#334155';
+                      (e.currentTarget as HTMLButtonElement).style.background = t.cardBorder;
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.background = '#1e293b';
+                      (e.currentTarget as HTMLButtonElement).style.background = t.cardBg;
                     }}
                   >
                     Edit

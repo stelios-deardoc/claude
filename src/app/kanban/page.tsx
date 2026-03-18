@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
+import { t } from '@/lib/theme';
 import { useCallTracker } from '@/lib/store';
 import {
   categorizeStatus,
@@ -40,9 +41,9 @@ function getDaysPending(call: Call): number {
 }
 
 function getDaysPendingColor(days: number): string {
-  if (days >= 14) return '#ef4444';
-  if (days >= 7) return '#f59e0b';
-  return '#3b82f6';
+  if (days >= 14) return t.danger;
+  if (days >= 7) return t.warning;
+  return t.accent;
 }
 
 export default function KanbanPage() {
@@ -94,9 +95,9 @@ export default function KanbanPage() {
     const sumMRR = (arr: Call[]) => arr.reduce((sum, c) => sum + getContractValue(c), 0);
 
     return [
-      { title: 'Saved', color: '#22c55e', calls: saved, droppable: true, statusValue: 'Closed Won', totalMRR: sumMRR(saved) },
-      { title: 'Lost', color: '#ef4444', calls: lost, droppable: true, statusValue: 'Closed Lost', totalMRR: sumMRR(lost) },
-      { title: 'Pending', color: '#f59e0b', calls: pending, droppable: true, statusValue: 'Open', totalMRR: sumMRR(pending) },
+      { title: 'Saved', color: t.success, calls: saved, droppable: true, statusValue: 'Closed Won', totalMRR: sumMRR(saved) },
+      { title: 'Lost', color: t.danger, calls: lost, droppable: true, statusValue: 'Closed Lost', totalMRR: sumMRR(lost) },
+      { title: 'Pending', color: t.warning, calls: pending, droppable: true, statusValue: 'Open', totalMRR: sumMRR(pending) },
       { title: 'Guarantee Issues', color: '#a855f7', calls: guarantee, droppable: false, statusValue: '', totalMRR: sumMRR(guarantee) },
       { title: 'Bad Standing', color: '#f97316', calls: badStanding, droppable: false, statusValue: '', totalMRR: sumMRR(badStanding) },
     ];
@@ -136,7 +137,7 @@ export default function KanbanPage() {
       {/* Month filter pill bar */}
       <div style={{ padding: '16px 24px 0 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <div style={{ fontSize: 13, color: '#94a3b8' }}>
+          <div style={{ fontSize: 13, color: t.textSecondary }}>
             {selectedMonth === 'all'
               ? `${calls.length} total calls`
               : `${filteredCalls.length} of ${calls.length} calls - ${getMonthLabel(selectedMonth)}`}
@@ -145,16 +146,16 @@ export default function KanbanPage() {
         <div style={{ display: 'flex', gap: 6, marginBottom: 0, flexWrap: 'wrap' }}>
           <button onClick={() => setSelectedMonth('all')} style={{
             padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-            border: selectedMonth === 'all' ? '1px solid #3b82f6' : '1px solid #334155',
+            border: selectedMonth === 'all' ? `1px solid ${t.accent}` : `1px solid ${t.cardBorder}`,
             background: selectedMonth === 'all' ? 'rgba(59,130,246,0.15)' : 'transparent',
-            color: selectedMonth === 'all' ? '#3b82f6' : '#64748b', cursor: 'pointer',
+            color: selectedMonth === 'all' ? t.accent : t.muted, cursor: 'pointer',
           }}>All Time</button>
           {months.map(m => (
             <button key={m} onClick={() => setSelectedMonth(m)} style={{
               padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-              border: selectedMonth === m ? '1px solid #3b82f6' : '1px solid #334155',
+              border: selectedMonth === m ? `1px solid ${t.accent}` : `1px solid ${t.cardBorder}`,
               background: selectedMonth === m ? 'rgba(59,130,246,0.15)' : 'transparent',
-              color: selectedMonth === m ? '#3b82f6' : '#64748b', cursor: 'pointer',
+              color: selectedMonth === m ? t.accent : t.muted, cursor: 'pointer',
             }}>
               {getMonthLabel(m)}{m === currentMonth ? ' *' : ''}
             </button>
@@ -207,14 +208,14 @@ export default function KanbanPage() {
                 gap: 8,
                 borderLeft: `3px solid ${col.color}`,
                 borderRadius: 8,
-                background: '#0b1120',
+                background: t.bg,
                 cursor: 'pointer',
                 border: isDragOver && col.droppable
-                  ? '2px dashed #3b82f6'
+                  ? `2px dashed ${t.accent}`
                   : `1px solid transparent`,
                 borderLeftWidth: isDragOver && col.droppable ? 2 : 3,
                 borderLeftStyle: isDragOver && col.droppable ? 'dashed' : 'solid',
-                borderLeftColor: isDragOver && col.droppable ? '#3b82f6' : col.color,
+                borderLeftColor: isDragOver && col.droppable ? t.accent : col.color,
               }}
             >
               <span
@@ -235,7 +236,7 @@ export default function KanbanPage() {
                   textOrientation: 'mixed',
                   fontWeight: 700,
                   fontSize: 13,
-                  color: '#e2e8f0',
+                  color: t.fg,
                   letterSpacing: 0.5,
                 }}
               >
@@ -257,12 +258,12 @@ export default function KanbanPage() {
               display: 'flex',
               flexDirection: 'column',
               borderLeft: isDragOver && col.droppable
-                ? '2px dashed #3b82f6'
+                ? `2px dashed ${t.accent}`
                 : `3px solid ${col.color}`,
               borderRadius: 8,
-              background: isDragOver && col.droppable ? '#0d1528' : '#0b1120',
+              background: isDragOver && col.droppable ? '#0d1528' : t.bg,
               border: isDragOver && col.droppable
-                ? '2px dashed #3b82f6'
+                ? `2px dashed ${t.accent}`
                 : undefined,
               borderLeftWidth: isDragOver && col.droppable ? undefined : 3,
               borderLeftStyle: isDragOver && col.droppable ? undefined : 'solid',
@@ -277,17 +278,17 @@ export default function KanbanPage() {
                 position: 'sticky',
                 top: 0,
                 zIndex: 1,
-                background: isDragOver && col.droppable ? '#0d1528' : '#0b1120',
+                background: isDragOver && col.droppable ? '#0d1528' : t.bg,
                 padding: '12px 14px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                borderBottom: '1px solid #1e293b',
+                borderBottom: `1px solid ${t.cardBg}`,
                 cursor: 'pointer',
                 userSelect: 'none',
               }}
             >
-              <span style={{ fontWeight: 700, fontSize: 14, color: '#e2e8f0' }}>
+              <span style={{ fontWeight: 700, fontSize: 14, color: t.fg }}>
                 {col.title}
               </span>
               <span
@@ -307,7 +308,7 @@ export default function KanbanPage() {
                   marginLeft: 'auto',
                   fontSize: 12,
                   fontWeight: 600,
-                  color: '#94a3b8',
+                  color: t.textSecondary,
                 }}
               >
                 {formatCurrency(col.totalMRR)}
@@ -326,7 +327,7 @@ export default function KanbanPage() {
               {col.calls.length === 0 ? (
                 <div
                   style={{
-                    color: '#475569',
+                    color: t.textTertiary,
                     fontSize: 13,
                     textAlign: 'center',
                     padding: '24px 0',
@@ -372,7 +373,7 @@ function KanbanCard({
   const standingLabel =
     standing === 'good' ? 'Good' : standing === 'bad' ? 'Bad' : 'Unknown';
   const standingColor =
-    standing === 'good' ? '#22c55e' : standing === 'bad' ? '#ef4444' : '#64748b';
+    standing === 'good' ? t.success : standing === 'bad' ? t.danger : t.muted;
 
   const mrr = getContractValue(call);
   const hasAcctChanges = hasAccountingChanges(call);
@@ -408,14 +409,14 @@ function KanbanCard({
       className={isUrgent ? 'kanban-card-urgent' : undefined}
       style={{
         position: 'relative',
-        background: '#0f172a',
-        border: isUrgent ? '1px solid #ef4444' : '1px solid #1e293b',
+        background: t.bg,
+        border: isUrgent ? `1px solid ${t.danger}` : `1px solid ${t.cardBg}`,
         borderRadius: 8,
         padding: 12,
         marginBottom: 8,
         cursor: 'pointer',
         transition: 'border-color 0.15s',
-        borderColor: isHovered && !isUrgent ? '#334155' : undefined,
+        borderColor: isHovered && !isUrgent ? t.cardBorder : undefined,
       }}
     >
       {/* Top row: account name + "..." button */}
@@ -424,7 +425,7 @@ function KanbanCard({
           style={{
             fontWeight: 700,
             fontSize: 13,
-            color: '#f1f5f9',
+            color: t.fg,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -450,7 +451,7 @@ function KanbanCard({
             style={{
               background: 'none',
               border: 'none',
-              color: '#94a3b8',
+              color: t.textSecondary,
               cursor: 'pointer',
               fontSize: 16,
               fontWeight: 700,
@@ -471,8 +472,8 @@ function KanbanCard({
                 top: '100%',
                 right: 0,
                 zIndex: 20,
-                background: '#1e293b',
-                border: '1px solid #334155',
+                background: t.cardBg,
+                border: `1px solid ${t.cardBorder}`,
                 borderRadius: 8,
                 padding: 4,
                 display: 'flex',
@@ -490,7 +491,7 @@ function KanbanCard({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#22c55e',
+                  color: t.success,
                   fontSize: 12,
                   fontWeight: 600,
                   padding: '6px 10px',
@@ -511,7 +512,7 @@ function KanbanCard({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#ef4444',
+                  color: t.danger,
                   fontSize: 12,
                   fontWeight: 600,
                   padding: '6px 10px',
@@ -532,7 +533,7 @@ function KanbanCard({
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#f59e0b',
+                  color: t.warning,
                   fontSize: 12,
                   fontWeight: 600,
                   padding: '6px 10px',
@@ -552,14 +553,14 @@ function KanbanCard({
 
       {/* Contact name */}
       {call.contactName && (
-        <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>
+        <div style={{ fontSize: 12, color: t.textSecondary, marginBottom: 4 }}>
           {call.contactName}
         </div>
       )}
 
       {/* Save type */}
       {call.saveType && (
-        <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>
+        <div style={{ fontSize: 12, color: t.textSecondary, marginBottom: 4 }}>
           {call.saveType}
         </div>
       )}
@@ -573,7 +574,7 @@ function KanbanCard({
           marginBottom: showDaysBadge || hasAcctChanges || notesPreview ? 6 : 0,
         }}
       >
-        <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 600 }}>
+        <span style={{ fontSize: 13, color: t.cardBorder, fontWeight: 600 }}>
           {formatCurrency(mrr)}
         </span>
         <span
@@ -631,7 +632,7 @@ function KanbanCard({
         <div
           style={{
             fontSize: 11,
-            color: '#64748b',
+            color: t.muted,
             lineHeight: 1.4,
             whiteSpace: 'nowrap',
             overflow: 'hidden',

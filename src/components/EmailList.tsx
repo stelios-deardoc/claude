@@ -11,6 +11,7 @@ import {
   getRelativeTime,
   getStatusCounts,
 } from '@/lib/email-utils';
+import { t } from '@/lib/theme';
 
 interface EmailListProps {
   emails: ProcessedEmail[];
@@ -45,17 +46,17 @@ export default function EmailList({ emails, selectedId, lastRunAt, onSelectEmail
     : 'Not scanned yet';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0f172a' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: t.bg }}>
       {/* Header */}
-      <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #334155' }}>
+      <div style={{ padding: '16px 16px 12px', borderBottom: `1px solid ${t.cardBorder}` }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#e2e8f0', margin: 0 }}>Inbox</h2>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>{lastRunLabel}</span>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, color: t.fg, margin: 0 }}>Inbox</h2>
+            <span style={{ fontSize: '11px', color: t.muted }}>{lastRunLabel}</span>
           </div>
           <button
             onClick={onRefresh}
-            style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 12px', color: '#94a3b8', fontSize: '12px', cursor: 'pointer' }}
+            style={{ background: t.cardBg, border: `1px solid ${t.cardBorder}`, borderRadius: '6px', padding: '6px 12px', color: t.textSecondary, fontSize: '12px', cursor: 'pointer' }}
           >
             Refresh
           </button>
@@ -63,13 +64,13 @@ export default function EmailList({ emails, selectedId, lastRunAt, onSelectEmail
 
         {/* Status counts bar */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
-          <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600 }}>{statusCounts.needs_response} Need Response</span>
-          <span style={{ fontSize: '11px', color: '#64748b' }}>|</span>
-          <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 600 }}>{statusCounts.draft_ready} Drafts Ready</span>
-          <span style={{ fontSize: '11px', color: '#64748b' }}>|</span>
-          <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 600 }}>{statusCounts.sent} Sent</span>
-          <span style={{ fontSize: '11px', color: '#64748b' }}>|</span>
-          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{statusCounts.archived} Archived</span>
+          <span style={{ fontSize: '11px', color: t.danger, fontWeight: 600 }}>{statusCounts.needs_response} Need Response</span>
+          <span style={{ fontSize: '11px', color: t.muted }}>|</span>
+          <span style={{ fontSize: '11px', color: t.warning, fontWeight: 600 }}>{statusCounts.draft_ready} Drafts Ready</span>
+          <span style={{ fontSize: '11px', color: t.muted }}>|</span>
+          <span style={{ fontSize: '11px', color: t.success, fontWeight: 600 }}>{statusCounts.sent} Sent</span>
+          <span style={{ fontSize: '11px', color: t.muted }}>|</span>
+          <span style={{ fontSize: '11px', color: t.muted, fontWeight: 600 }}>{statusCounts.archived} Archived</span>
         </div>
 
         {/* Filter chips */}
@@ -85,14 +86,14 @@ export default function EmailList({ emails, selectedId, lastRunAt, onSelectEmail
                 fontSize: '11px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                background: priorityFilter === p ? (p === 'all' ? '#6366f1' : PRIORITY_CONFIG[p].bgColor) : '#1e293b',
-                color: priorityFilter === p ? (p === 'all' ? '#fff' : PRIORITY_CONFIG[p].color) : '#64748b',
+                background: priorityFilter === p ? (p === 'all' ? '#6366f1' : PRIORITY_CONFIG[p].bgColor) : t.cardBg,
+                color: priorityFilter === p ? (p === 'all' ? '#fff' : PRIORITY_CONFIG[p].color) : t.muted,
               }}
             >
               {p === 'all' ? 'All' : PRIORITY_CONFIG[p].label}
             </button>
           ))}
-          <span style={{ width: '1px', background: '#334155', margin: '0 4px' }} />
+          <span style={{ width: '1px', background: t.cardBorder, margin: '0 4px' }} />
           {(['active', 'needs_response', 'draft_ready', 'all'] as const).map(s => (
             <button
               key={s}
@@ -104,8 +105,8 @@ export default function EmailList({ emails, selectedId, lastRunAt, onSelectEmail
                 fontSize: '11px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                background: statusFilter === s ? '#6366f1' : '#1e293b',
-                color: statusFilter === s ? '#fff' : '#64748b',
+                background: statusFilter === s ? '#6366f1' : t.cardBg,
+                color: statusFilter === s ? '#fff' : t.muted,
               }}
             >
               {s === 'active' ? 'Active' : s === 'all' ? 'All' : STATUS_CONFIG[s].label}
@@ -143,30 +144,30 @@ export default function EmailList({ emails, selectedId, lastRunAt, onSelectEmail
                       marginBottom: '2px',
                       borderRadius: '8px',
                       cursor: 'pointer',
-                      background: isSelected ? '#1e293b' : 'transparent',
+                      background: isSelected ? t.cardBg : 'transparent',
                       borderLeft: `3px solid ${isSelected ? config.borderColor : 'transparent'}`,
                       transition: 'background 0.1s',
                     }}
-                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = '#1e293b'; }}
+                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = t.cardBg; }}
                     onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
                   >
                     <div style={{
-                      width: '32px', height: '32px', borderRadius: '50%', background: '#334155',
+                      width: '32px', height: '32px', borderRadius: '50%', background: t.cardBorder,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '11px', fontWeight: 600, color: '#e2e8f0', flexShrink: 0,
+                      fontSize: '11px', fontWeight: 600, color: t.fg, flexShrink: 0,
                     }}>
                       {getSenderInitials(email.from)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: t.fg, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {getSenderName(email.from)}
                         </span>
-                        <span style={{ fontSize: '10px', color: '#64748b', flexShrink: 0, marginLeft: '8px' }}>
+                        <span style={{ fontSize: '10px', color: t.muted, flexShrink: 0, marginLeft: '8px' }}>
                           {getRelativeTime(email.receivedAt)}
                         </span>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '3px' }}>
+                      <div style={{ fontSize: '12px', color: t.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '3px' }}>
                         {email.subject}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -187,7 +188,7 @@ export default function EmailList({ emails, selectedId, lastRunAt, onSelectEmail
                         {email.matchedAccount && email.matchedAccount.mrrAtRisk > 0 && (
                           <span style={{
                             fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '8px',
-                            color: '#f59e0b', background: 'rgba(245, 158, 11, 0.15)',
+                            color: t.warning, background: 'rgba(245, 158, 11, 0.15)',
                           }}>
                             ${email.matchedAccount.mrrAtRisk}/mo
                           </span>
@@ -202,7 +203,7 @@ export default function EmailList({ emails, selectedId, lastRunAt, onSelectEmail
         })}
 
         {filteredEmails.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b', fontSize: '13px' }}>
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: t.muted, fontSize: '13px' }}>
             {emails.length === 0 ? 'No emails processed yet. Run "clean my inbox" to start.' : 'No emails match the current filters.'}
           </div>
         )}

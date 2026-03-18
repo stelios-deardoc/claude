@@ -18,6 +18,10 @@
   --hover-bg: rgba(255, 255, 255, 0.05);
   --active-bg: rgba(59, 130, 246, 0.1);
   --modal-backdrop: rgba(0, 0, 0, 0.6);
+  --text-secondary: #94a3b8;
+  --text-tertiary: #475569;
+  --card-bg-hover: #253348;
+  --input-bg: #0f172a;
   --badge-saved-bg: rgba(34, 197, 94, 0.2);
   --badge-lost-bg: rgba(239, 68, 68, 0.2);
   --badge-pending-bg: rgba(245, 158, 11, 0.2);
@@ -42,6 +46,10 @@
   --hover-bg: rgba(0, 0, 0, 0.04);
   --active-bg: rgba(37, 99, 235, 0.08);
   --modal-backdrop: rgba(0, 0, 0, 0.4);
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+  --card-bg-hover: #f1f5f9;
+  --input-bg: #ffffff;
   --badge-saved-bg: rgba(22, 163, 74, 0.12);
   --badge-lost-bg: rgba(220, 38, 38, 0.12);
   --badge-pending-bg: rgba(217, 119, 6, 0.12);

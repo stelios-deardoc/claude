@@ -15,6 +15,7 @@ import {
 } from '@/lib/call-utils';
 import { CDP_LEVELS } from '@/lib/commission-data';
 import type { Call, Split, CDPLevelKey, CDPTier } from '@/lib/types';
+import { t } from '@/lib/theme';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -53,8 +54,8 @@ const cardTitle: React.CSSProperties = {
   marginBottom: 12,
 };
 
-const green = '#22c55e';
-const red = '#ef4444';
+const green = t.success;
+const red = t.danger;
 const dimText = '#71717a';
 const lightText = '#e4e4e7';
 

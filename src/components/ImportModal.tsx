@@ -5,6 +5,7 @@ import { useCallTracker } from '@/lib/store';
 import { autoMapColumns, processImportRow, parseCSVLine } from '@/lib/import-utils';
 import { Call } from '@/lib/types';
 import * as XLSX from 'xlsx';
+import { t } from '@/lib/theme';
 
 const IMPORT_FIELDS: { key: string; label: string; required?: boolean }[] = [
   { key: 'accountName', label: 'Account Name', required: true },
@@ -240,17 +241,17 @@ export default function ImportModal() {
         style={{
           maxWidth: 700,
           width: '100%',
-          background: '#1e293b',
+          background: t.cardBg,
           borderRadius: 12,
           padding: 24,
           maxHeight: '90vh',
           overflowY: 'auto',
-          color: '#e2e8f0',
+          color: t.fg,
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: '#f8fafc' }}>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: t.statValue }}>
             Import Salesforce Data
           </h2>
           <button
@@ -258,7 +259,7 @@ export default function ImportModal() {
             style={{
               background: 'none',
               border: 'none',
-              color: '#94a3b8',
+              color: t.textSecondary,
               fontSize: 24,
               cursor: 'pointer',
               lineHeight: 1,
@@ -280,7 +281,7 @@ export default function ImportModal() {
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             style={{
-              border: `2px dashed ${isDragging ? '#3b82f6' : '#334155'}`,
+              border: `2px dashed ${isDragging ? t.accent : t.cardBorder}`,
               borderRadius: 8,
               padding: 48,
               textAlign: 'center',
@@ -296,16 +297,16 @@ export default function ImportModal() {
               style={{ display: 'none' }}
             />
             <div style={{ fontSize: 40, marginBottom: 12 }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto', display: 'block' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={t.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto', display: 'block' }}>
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
             </div>
-            <p style={{ color: '#94a3b8', margin: '8px 0 4px', fontSize: 15 }}>
+            <p style={{ color: t.textSecondary, margin: '8px 0 4px', fontSize: 15 }}>
               Drag and drop your file here, or click to browse
             </p>
-            <p style={{ color: '#64748b', margin: 0, fontSize: 13 }}>
+            <p style={{ color: t.muted, margin: 0, fontSize: 13 }}>
               Supports .xlsx, .xls, .csv
             </p>
           </div>
@@ -316,7 +317,7 @@ export default function ImportModal() {
           <div>
             {/* Mapping Grid */}
             <div style={{ marginBottom: 20 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 600, color: '#cbd5e1', marginBottom: 12 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: t.cardBorder, marginBottom: 12 }}>
                 Column Mapping
               </h3>
               <div
@@ -331,22 +332,22 @@ export default function ImportModal() {
                     <label
                       style={{
                         fontSize: 13,
-                        color: '#94a3b8',
+                        color: t.textSecondary,
                         minWidth: 120,
                         whiteSpace: 'nowrap',
                       }}
                     >
                       {label}
-                      {required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
+                      {required && <span style={{ color: t.danger, marginLeft: 2 }}>*</span>}
                     </label>
                     <select
                       value={mapping[key] !== undefined ? mapping[key] : -1}
                       onChange={(e) => handleMappingChange(key, parseInt(e.target.value, 10))}
                       style={{
                         flex: 1,
-                        background: '#0f172a',
-                        color: '#e2e8f0',
-                        border: '1px solid #334155',
+                        background: t.bg,
+                        color: t.fg,
+                        border: `1px solid ${t.cardBorder}`,
                         borderRadius: 4,
                         padding: '4px 8px',
                         fontSize: 12,
@@ -367,7 +368,7 @@ export default function ImportModal() {
 
             {/* Preview Table */}
             <div style={{ marginBottom: 16 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 600, color: '#cbd5e1', marginBottom: 8 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: t.cardBorder, marginBottom: 8 }}>
                 Preview ({rows.length} rows to import)
               </h3>
               <div style={{ overflowX: 'auto' }}>
@@ -386,8 +387,8 @@ export default function ImportModal() {
                           style={{
                             textAlign: 'left',
                             padding: '6px 8px',
-                            color: '#94a3b8',
-                            borderBottom: '1px solid #334155',
+                            color: t.textSecondary,
+                            borderBottom: `1px solid ${t.cardBorder}`,
                             fontWeight: 500,
                           }}
                         >
@@ -398,17 +399,17 @@ export default function ImportModal() {
                   </thead>
                   <tbody>
                     {rows.slice(0, 3).map((row, i) => (
-                      <tr key={i} style={{ background: i % 2 === 0 ? '#1e293b' : '#172033' }}>
-                        <td style={{ padding: '5px 8px', color: '#e2e8f0' }}>
+                      <tr key={i} style={{ background: i % 2 === 0 ? t.cardBg : '#172033' }}>
+                        <td style={{ padding: '5px 8px', color: t.fg }}>
                           {getPreviewValue(row, 'accountName')}
                         </td>
-                        <td style={{ padding: '5px 8px', color: '#e2e8f0' }}>
+                        <td style={{ padding: '5px 8px', color: t.fg }}>
                           {getPreviewValue(row, 'saveStatus')}
                         </td>
-                        <td style={{ padding: '5px 8px', color: '#e2e8f0' }}>
+                        <td style={{ padding: '5px 8px', color: t.fg }}>
                           {getPreviewValue(row, 'saveType')}
                         </td>
-                        <td style={{ padding: '5px 8px', color: '#e2e8f0' }}>
+                        <td style={{ padding: '5px 8px', color: t.fg }}>
                           {getPreviewValue(row, 'paymentStanding')}
                         </td>
                       </tr>
@@ -427,8 +428,8 @@ export default function ImportModal() {
                 }}
                 style={{
                   padding: '8px 16px',
-                  background: '#334155',
-                  color: '#e2e8f0',
+                  background: t.cardBorder,
+                  color: t.fg,
                   border: 'none',
                   borderRadius: 6,
                   cursor: 'pointer',
@@ -441,8 +442,8 @@ export default function ImportModal() {
                 onClick={handleClose}
                 style={{
                   padding: '8px 16px',
-                  background: '#334155',
-                  color: '#e2e8f0',
+                  background: t.cardBorder,
+                  color: t.fg,
                   border: 'none',
                   borderRadius: 6,
                   cursor: 'pointer',
@@ -455,8 +456,8 @@ export default function ImportModal() {
                 onClick={handleImport}
                 style={{
                   padding: '8px 16px',
-                  background: '#3b82f6',
-                  color: '#ffffff',
+                  background: t.accent,
+                  color: 'white',
                   border: 'none',
                   borderRadius: 6,
                   cursor: 'pointer',

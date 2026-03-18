@@ -13,6 +13,7 @@ import {
   generateId,
 } from '@/lib/call-utils';
 import type { Call } from '@/lib/types';
+import { t } from '@/lib/theme';
 
 // ---------------------------------------------------------------------------
 // Form state shape
@@ -295,14 +296,14 @@ export default function CallModal() {
     >
       <div
         style={{
-          background: '#1e293b',
+          background: t.cardBg,
           borderRadius: 12,
           padding: 24,
           width: '100%',
           maxWidth: 720,
           maxHeight: '90vh',
           overflowY: 'auto',
-          color: '#e2e8f0',
+          color: t.fg,
         }}
       >
         {/* ============================================================ */}
@@ -317,7 +318,7 @@ export default function CallModal() {
                   width: 48,
                   height: 48,
                   borderRadius: '50%',
-                  background: '#334155',
+                  background: t.cardBorder,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -331,7 +332,7 @@ export default function CallModal() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: 18 }}>{call.accountName}</div>
                 {call.contactName && (
-                  <div style={{ color: '#94a3b8', fontSize: 14 }}>{call.contactName}</div>
+                  <div style={{ color: t.textSecondary, fontSize: 14 }}>{call.contactName}</div>
                 )}
               </div>
               <span className={statusBadgeClass(call.saveStatus)}>
@@ -344,7 +345,7 @@ export default function CallModal() {
               {call.saveType && (
                 <span
                   style={{
-                    background: '#334155',
+                    background: t.cardBorder,
                     padding: '2px 10px',
                     borderRadius: 9999,
                     fontSize: 12,
@@ -380,7 +381,7 @@ export default function CallModal() {
               {call.newContractDuration && (
                 <span
                   style={{
-                    background: '#334155',
+                    background: t.cardBorder,
                     padding: '2px 10px',
                     borderRadius: 9999,
                     fontSize: 12,
@@ -410,7 +411,7 @@ export default function CallModal() {
 
             {/* Meeting date */}
             {call.meetingDate && (
-              <div style={{ marginBottom: 16, fontSize: 14, color: '#94a3b8' }}>
+              <div style={{ marginBottom: 16, fontSize: 14, color: t.textSecondary }}>
                 Meeting: {formatDate(call.meetingDate)}
               </div>
             )}
@@ -439,7 +440,7 @@ export default function CallModal() {
                 {call.notes && (
                   <div
                     style={{
-                      background: '#0f172a',
+                      background: t.bg,
                       borderRadius: 8,
                       padding: 12,
                       fontSize: 14,
@@ -452,7 +453,7 @@ export default function CallModal() {
                   </div>
                 )}
                 {call.saveSubReason && (
-                  <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 16 }}>
+                  <div style={{ fontSize: 13, color: t.textSecondary, marginBottom: 16 }}>
                     <strong>Save Sub Reason:</strong> {call.saveSubReason}
                   </div>
                 )}
@@ -472,10 +473,10 @@ export default function CallModal() {
                   )}
                   {call.contractSwap && (
                     <div>
-                      <div style={{ fontSize: 12, color: '#94a3b8' }}>Contract Swap</div>
+                      <div style={{ fontSize: 12, color: t.textSecondary }}>Contract Swap</div>
                       <span style={{
                         display: 'inline-block',
-                        background: call.contractSwap === 'Yes' ? '#166534' : '#334155',
+                        background: call.contractSwap === 'Yes' ? '#166534' : t.cardBorder,
                         padding: '2px 10px',
                         borderRadius: 9999,
                         fontSize: 12,
@@ -491,10 +492,10 @@ export default function CallModal() {
                   )}
                   {call.relaunch && (
                     <div>
-                      <div style={{ fontSize: 12, color: '#94a3b8' }}>Relaunch</div>
+                      <div style={{ fontSize: 12, color: t.textSecondary }}>Relaunch</div>
                       <span style={{
                         display: 'inline-block',
-                        background: call.relaunch === 'Yes' ? '#166534' : '#334155',
+                        background: call.relaunch === 'Yes' ? '#166534' : t.cardBorder,
                         padding: '2px 10px',
                         borderRadius: 9999,
                         fontSize: 12,
@@ -511,7 +512,7 @@ export default function CallModal() {
                 </div>
                 {call.accountingNotes && (
                   <div style={{
-                    background: '#0f172a',
+                    background: t.bg,
                     borderRadius: 8,
                     padding: 12,
                     fontSize: 14,
@@ -636,7 +637,7 @@ export default function CallModal() {
 
             {/* Notes textarea */}
             <div style={{ marginTop: 12 }}>
-              <label style={{ display: 'block', fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>
+              <label style={{ display: 'block', fontSize: 12, color: t.textSecondary, marginBottom: 4 }}>
                 Notes
               </label>
               <textarea
@@ -646,8 +647,8 @@ export default function CallModal() {
                 rows={4}
                 style={{
                   width: '100%',
-                  background: '#0f172a',
-                  border: '1px solid #334155',
+                  background: t.bg,
+                  border: `1px solid ${t.cardBorder}`,
                   borderRadius: 6,
                   color: 'white',
                   padding: '8px 12px',
@@ -719,7 +720,7 @@ export default function CallModal() {
               />
             </div>
             <div style={{ marginTop: 12 }}>
-              <label style={{ display: 'block', fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>
+              <label style={{ display: 'block', fontSize: 12, color: t.textSecondary, marginBottom: 4 }}>
                 Accounting Notes
               </label>
               <textarea
@@ -729,8 +730,8 @@ export default function CallModal() {
                 rows={3}
                 style={{
                   width: '100%',
-                  background: '#0f172a',
-                  border: '1px solid #334155',
+                  background: t.bg,
+                  border: `1px solid ${t.cardBorder}`,
                   borderRadius: 6,
                   color: 'white',
                   padding: '8px 12px',
@@ -765,13 +766,13 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <div
       style={{
-        background: '#0f172a',
+        background: t.bg,
         borderRadius: 8,
         padding: 12,
         textAlign: 'center',
       }}
     >
-      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 12, color: t.textSecondary, marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 18, fontWeight: 700 }}>{value}</div>
     </div>
   );
@@ -788,7 +789,7 @@ function DetailRow({
 }) {
   return (
     <div style={fullWidth ? { gridColumn: '1 / -1' } : undefined}>
-      <div style={{ fontSize: 12, color: '#94a3b8' }}>{label}</div>
+      <div style={{ fontSize: 12, color: t.textSecondary }}>{label}</div>
       <div style={{ fontSize: 14 }}>{value}</div>
     </div>
   );
@@ -800,7 +801,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
       style={{
         fontSize: 13,
         fontWeight: 600,
-        color: '#64748b',
+        color: t.muted,
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
         marginBottom: 8,
@@ -822,7 +823,7 @@ function ModalButton({
 }) {
   const styles: Record<string, React.CSSProperties> = {
     primary: {
-      background: '#3b82f6',
+      background: t.accent,
       color: 'white',
       border: 'none',
       borderRadius: 6,
@@ -832,7 +833,7 @@ function ModalButton({
       fontSize: 14,
     },
     danger: {
-      background: '#ef4444',
+      background: t.danger,
       color: 'white',
       border: 'none',
       borderRadius: 6,
@@ -843,8 +844,8 @@ function ModalButton({
     },
     ghost: {
       background: 'transparent',
-      color: '#94a3b8',
-      border: '1px solid #334155',
+      color: t.textSecondary,
+      border: `1px solid ${t.cardBorder}`,
       borderRadius: 6,
       padding: '8px 20px',
       fontWeight: 600,
@@ -877,7 +878,7 @@ function FormField({
 }) {
   return (
     <div style={fullWidth ? { gridColumn: '1 / -1' } : undefined}>
-      <label style={{ display: 'block', fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>
+      <label style={{ display: 'block', fontSize: 12, color: t.textSecondary, marginBottom: 4 }}>
         {label}
       </label>
       <input
@@ -887,8 +888,8 @@ function FormField({
         onChange={onChange}
         style={{
           width: '100%',
-          background: '#0f172a',
-          border: '1px solid #334155',
+          background: t.bg,
+          border: `1px solid ${t.cardBorder}`,
           borderRadius: 6,
           color: 'white',
           padding: '8px 12px',
@@ -914,7 +915,7 @@ function FormSelect({
 }) {
   return (
     <div>
-      <label style={{ display: 'block', fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>
+      <label style={{ display: 'block', fontSize: 12, color: t.textSecondary, marginBottom: 4 }}>
         {label}
       </label>
       <select
@@ -923,8 +924,8 @@ function FormSelect({
         onChange={onChange}
         style={{
           width: '100%',
-          background: '#0f172a',
-          border: '1px solid #334155',
+          background: t.bg,
+          border: `1px solid ${t.cardBorder}`,
           borderRadius: 6,
           color: 'white',
           padding: '8px 12px',

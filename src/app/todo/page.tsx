@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
+import { t as theme } from '@/lib/theme';
 import { useCallTracker } from '@/lib/store';
 import {
   generateId,
@@ -28,11 +29,11 @@ const CATEGORY_LABELS: Record<TodoTask['category'], string> = {
 const PRIORITY_MAP: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
 const inputStyle: React.CSSProperties = {
-  background: '#0f172a',
-  border: '1px solid #334155',
+  background: theme.bg,
+  border: `1px solid ${theme.cardBorder}`,
   borderRadius: 6,
   padding: '8px 12px',
-  color: '#e2e8f0',
+  color: theme.fg,
   fontSize: 13,
   outline: 'none',
 };
@@ -40,33 +41,33 @@ const inputStyle: React.CSSProperties = {
 const selectStyle: React.CSSProperties = { ...inputStyle };
 
 function getDueDateInfo(dueDate: string): { color: string; label: string } {
-  if (!dueDate) return { color: '#64748b', label: '' };
+  if (!dueDate) return { color: theme.muted, label: '' };
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const due = new Date(dueDate + 'T00:00:00');
   const diff = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  if (diff < 0) return { color: '#ef4444', label: 'Overdue' };
-  if (diff === 0) return { color: '#f59e0b', label: 'Today' };
-  if (diff <= 3) return { color: '#3b82f6', label: 'Soon' };
-  return { color: '#64748b', label: dueDate };
+  if (diff < 0) return { color: theme.danger, label: 'Overdue' };
+  if (diff === 0) return { color: theme.warning, label: 'Today' };
+  if (diff <= 3) return { color: theme.accent, label: 'Soon' };
+  return { color: theme.muted, label: dueDate };
 }
 
 function getPriorityDotColor(priority: string): string {
-  if (priority === 'high') return '#ef4444';
-  if (priority === 'medium') return '#f59e0b';
-  return '#64748b';
+  if (priority === 'high') return theme.danger;
+  if (priority === 'medium') return theme.warning;
+  return theme.muted;
 }
 
 function getCategoryBadgeStyle(category: string): React.CSSProperties {
   const colorMap: Record<string, string> = {
-    'follow-up': '#3b82f6',
+    'follow-up': theme.accent,
     'email': '#8b5cf6',
-    'internal': '#64748b',
+    'internal': theme.muted,
     'salesforce': '#06b6d4',
     'meeting': '#10b981',
-    'other': '#94a3b8',
+    'other': theme.textSecondary,
   };
-  const c = colorMap[category] || '#94a3b8';
+  const c = colorMap[category] || theme.textSecondary;
   return {
     fontSize: 11,
     fontWeight: 600,
@@ -296,7 +297,7 @@ export default function TodoPage() {
         key={t.id}
         style={{
           background: 'var(--card-bg, #1e293b)',
-          border: `1px solid ${isSelected ? '#3b82f6' : 'var(--card-border, #334155)'}`,
+          border: `1px solid ${isSelected ? theme.accent : 'var(--card-border, #334155)'}`,
           borderRadius: 10,
           opacity: dimmed ? 0.5 : 1,
           overflow: 'hidden',
@@ -324,7 +325,7 @@ export default function TodoPage() {
               width: 22,
               height: 22,
               borderRadius: '50%',
-              border: `2px solid ${t.completed ? '#10b981' : '#475569'}`,
+              border: `2px solid ${t.completed ? '#10b981' : theme.textTertiary}`,
               background: t.completed ? '#10b981' : 'transparent',
               cursor: 'pointer',
               flexShrink: 0,
@@ -332,7 +333,7 @@ export default function TodoPage() {
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: 12,
-              color: '#fff',
+              color: theme.statValue,
             }}
           >
             {t.completed ? '\u2713' : ''}
@@ -365,14 +366,14 @@ export default function TodoPage() {
                 fontWeight: 600,
                 fontSize: 14,
                 textDecoration: dimmed ? 'line-through' : 'none',
-                color: '#e2e8f0',
+                color: theme.fg,
                 marginBottom: t.description || linkedCall ? 4 : 0,
               }}
             >
               {t.title}
             </div>
             {t.description && !isExpanded && (
-              <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: linkedCall ? 4 : 0 }}>
+              <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: linkedCall ? 4 : 0 }}>
                 {t.description.length > 100 ? t.description.substring(0, 100) + '...' : t.description}
               </div>
             )}
@@ -384,7 +385,7 @@ export default function TodoPage() {
                 }}
                 style={{
                   fontSize: 12,
-                  color: '#3b82f6',
+                  color: theme.accent,
                   cursor: 'pointer',
                 }}
               >
@@ -407,7 +408,7 @@ export default function TodoPage() {
             </span>
             {/* Completed date for completed tasks */}
             {dimmed && t.completedAt && (
-              <span style={{ fontSize: 11, color: '#64748b' }}>
+              <span style={{ fontSize: 11, color: theme.muted }}>
                 {new Date(t.completedAt).toLocaleDateString()}
               </span>
             )}
@@ -420,7 +421,7 @@ export default function TodoPage() {
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#64748b',
+                color: theme.muted,
                 fontSize: 16,
                 cursor: 'pointer',
                 padding: '2px 4px',
@@ -436,7 +437,7 @@ export default function TodoPage() {
         {isExpanded && (
           <div
             style={{
-              borderTop: '1px solid #334155',
+              borderTop: `1px solid ${theme.cardBorder}`,
               padding: '14px 16px',
               display: 'flex',
               flexDirection: 'column',
@@ -493,8 +494,8 @@ export default function TodoPage() {
               <button
                 onClick={saveExpanded}
                 style={{
-                  background: '#3b82f6',
-                  color: '#fff',
+                  background: theme.accent,
+                  color: 'white',
                   fontWeight: 600,
                   border: 'none',
                   borderRadius: 6,
@@ -519,8 +520,8 @@ export default function TodoPage() {
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>To-Do</h1>
         <span
           style={{
-            background: '#3b82f6',
-            color: '#fff',
+            background: theme.accent,
+            color: 'white',
             borderRadius: 20,
             padding: '3px 12px',
             fontSize: 13,
@@ -532,7 +533,7 @@ export default function TodoPage() {
         {reviewCount > 0 && (
           <span
             style={{
-              background: '#f59e0b',
+              background: theme.warning,
               color: '#000',
               borderRadius: 20,
               padding: '3px 12px',
@@ -625,13 +626,13 @@ export default function TodoPage() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontWeight: 600, fontSize: 15, color: '#e2e8f0' }}>
+              <span style={{ fontWeight: 600, fontSize: 15, color: theme.fg }}>
                 Suggested Actions
               </span>
               <span
                 style={{
-                  background: '#f59e0b22',
-                  color: '#f59e0b',
+                  background: `${theme.warning}22`,
+                  color: theme.warning,
                   borderRadius: 20,
                   padding: '2px 10px',
                   fontSize: 12,
@@ -641,7 +642,7 @@ export default function TodoPage() {
                 {suggestions.length}
               </span>
             </div>
-            <span style={{ color: '#94a3b8', fontSize: 13 }}>
+            <span style={{ color: theme.textSecondary, fontSize: 13 }}>
               {suggestionsOpen ? 'Hide' : 'Show'}
             </span>
           </div>
@@ -658,7 +659,7 @@ export default function TodoPage() {
                       display: 'flex',
                       alignItems: 'center',
                       padding: '12px 16px',
-                      borderTop: '1px solid #334155',
+                      borderTop: `1px solid ${theme.cardBorder}`,
                       gap: 12,
                     }}
                   >
@@ -668,13 +669,13 @@ export default function TodoPage() {
                         style={{
                           fontWeight: 600,
                           fontSize: 14,
-                          color: '#3b82f6',
+                          color: theme.accent,
                           cursor: 'pointer',
                         }}
                       >
                         {s.accountName || 'Unknown'}
                       </span>
-                      <div style={{ fontSize: 13, color: '#cbd5e1', marginTop: 2 }}>
+                      <div style={{ fontSize: 13, color: theme.cardBorder, marginTop: 2 }}>
                         {s.suggestion}
                       </div>
                     </div>
@@ -692,15 +693,15 @@ export default function TodoPage() {
                       {s.priority}
                     </span>
                     {mrr && (
-                      <span style={{ fontSize: 12, color: '#94a3b8', flexShrink: 0 }}>
+                      <span style={{ fontSize: 12, color: theme.textSecondary, flexShrink: 0 }}>
                         {mrr}
                       </span>
                     )}
                     <button
                       onClick={() => createFromSuggestion(s)}
                       style={{
-                        background: '#3b82f6',
-                        color: '#fff',
+                        background: theme.accent,
+                        color: 'white',
                         fontWeight: 600,
                         border: 'none',
                         borderRadius: 6,
@@ -724,7 +725,7 @@ export default function TodoPage() {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#64748b',
+                        color: theme.muted,
                         fontSize: 16,
                         cursor: 'pointer',
                         padding: '2px 4px',
@@ -803,8 +804,8 @@ export default function TodoPage() {
         <button
           onClick={handleQuickAdd}
           style={{
-            background: '#3b82f6',
-            color: '#fff',
+            background: theme.accent,
+            color: 'white',
             fontWeight: 600,
             border: 'none',
             borderRadius: 6,
@@ -823,7 +824,7 @@ export default function TodoPage() {
           style={{
             textAlign: 'center',
             padding: '60px 20px',
-            color: '#94a3b8',
+            color: theme.textSecondary,
             fontSize: 16,
           }}
         >
@@ -839,8 +840,8 @@ export default function TodoPage() {
       {reviewTodos.length > 0 && (
         <div style={{ marginTop: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#f59e0b' }}>Needs Review</span>
-            <span style={{ fontSize: 12, color: '#94a3b8' }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: theme.warning }}>Needs Review</span>
+            <span style={{ fontSize: 12, color: theme.textSecondary }}>
               Enter = Complete | Backspace = Reopen
             </span>
           </div>
@@ -853,7 +854,7 @@ export default function TodoPage() {
                   style={{
                     background: 'var(--card-bg, #1e293b)',
                     border: '1px solid var(--card-border, #334155)',
-                    borderLeft: '4px solid #f59e0b',
+                    borderLeft: `4px solid ${theme.warning}`,
                     borderRadius: 10,
                     overflow: 'hidden',
                   }}
@@ -861,9 +862,9 @@ export default function TodoPage() {
                   <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', gap: 12 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontWeight: 600, fontSize: 14, color: '#e2e8f0' }}>{t.title}</span>
+                        <span style={{ fontWeight: 600, fontSize: 14, color: theme.fg }}>{t.title}</span>
                         {t.autoCreated && (
-                          <span style={{ fontSize: 10, color: '#94a3b8', background: '#334155', padding: '1px 6px', borderRadius: 4 }}>
+                          <span style={{ fontSize: 10, color: theme.textSecondary, background: theme.cardBorder, padding: '1px 6px', borderRadius: 4 }}>
                             auto-created
                           </span>
                         )}
@@ -871,7 +872,7 @@ export default function TodoPage() {
                       {linkedCall && (
                         <span
                           onClick={() => openCallModal(linkedCall.id)}
-                          style={{ fontSize: 12, color: '#3b82f6', cursor: 'pointer' }}
+                          style={{ fontSize: 12, color: theme.accent, cursor: 'pointer' }}
                         >
                           {linkedCall.accountName || 'Linked Account'}
                         </span>
@@ -884,8 +885,8 @@ export default function TodoPage() {
                               <span style={{ color: activity.source === 'gmail' ? '#8b5cf6' : '#10b981', fontWeight: 600 }}>
                                 {activity.source === 'gmail' ? 'EMAIL' : activity.source === 'calendar' ? 'MEETING' : 'NOTE'}
                               </span>
-                              <span style={{ color: '#cbd5e1' }}>{activity.summary}</span>
-                              <span style={{ color: '#64748b', marginLeft: 'auto', flexShrink: 0 }}>
+                              <span style={{ color: theme.cardBorder }}>{activity.summary}</span>
+                              <span style={{ color: theme.muted, marginLeft: 'auto', flexShrink: 0 }}>
                                 {new Date(activity.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                               </span>
                             </div>
@@ -899,7 +900,7 @@ export default function TodoPage() {
                         title="Complete"
                         style={{
                           background: '#10b981',
-                          color: '#fff',
+                          color: 'white',
                           border: 'none',
                           borderRadius: 6,
                           padding: '6px 14px',
@@ -914,8 +915,8 @@ export default function TodoPage() {
                         onClick={() => reopenTodo(t.id)}
                         title="Reopen"
                         style={{
-                          background: '#3b82f6',
-                          color: '#fff',
+                          background: theme.accent,
+                          color: 'white',
                           border: 'none',
                           borderRadius: 6,
                           padding: '6px 14px',
@@ -942,9 +943,9 @@ export default function TodoPage() {
             onClick={() => setShowCompleted(!showCompleted)}
             style={{
               background: 'none',
-              border: '1px solid #334155',
+              border: `1px solid ${theme.cardBorder}`,
               borderRadius: 6,
-              color: '#94a3b8',
+              color: theme.textSecondary,
               fontSize: 13,
               padding: '8px 16px',
               cursor: 'pointer',
@@ -969,8 +970,8 @@ export default function TodoPage() {
             bottom: 24,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: '#1e293b',
-            border: '1px solid #334155',
+            background: theme.cardBg,
+            border: `1px solid ${theme.cardBorder}`,
             borderRadius: 10,
             padding: '12px 24px',
             display: 'flex',
@@ -980,14 +981,14 @@ export default function TodoPage() {
             zIndex: 100,
           }}
         >
-          <span style={{ fontSize: 14, color: '#e2e8f0', fontWeight: 600 }}>
+          <span style={{ fontSize: 14, color: theme.fg, fontWeight: 600 }}>
             {selectedIds.size} selected
           </span>
           <button
             onClick={handleBulkComplete}
             style={{
               background: '#10b981',
-              color: '#fff',
+              color: 'white',
               fontWeight: 600,
               border: 'none',
               borderRadius: 6,
@@ -1001,8 +1002,8 @@ export default function TodoPage() {
           <button
             onClick={handleBulkDelete}
             style={{
-              background: '#ef4444',
-              color: '#fff',
+              background: theme.danger,
+              color: 'white',
               fontWeight: 600,
               border: 'none',
               borderRadius: 6,

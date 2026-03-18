@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { t } from '@/lib/theme';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -44,19 +45,19 @@ type ViewFilter = 'all' | 'needs-action' | 'saved' | 'lost' | 'pending';
 
 function getDecisionStyle(decision: string): { color: string; bg: string; border: string } {
   switch (decision.toUpperCase()) {
-    case 'SAVED': return { color: '#22c55e', bg: 'rgba(34,197,94,0.15)', border: '#22c55e' };
-    case 'LOST': return { color: '#ef4444', bg: 'rgba(239,68,68,0.15)', border: '#ef4444' };
-    case 'PENDING': return { color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', border: '#f59e0b' };
-    default: return { color: '#64748b', bg: 'rgba(100,116,139,0.15)', border: '#64748b' };
+    case 'SAVED': return { color: t.success, bg: 'rgba(34,197,94,0.15)', border: t.success };
+    case 'LOST': return { color: t.danger, bg: 'rgba(239,68,68,0.15)', border: t.danger };
+    case 'PENDING': return { color: t.warning, bg: 'rgba(245,158,11,0.15)', border: t.warning };
+    default: return { color: t.muted, bg: 'rgba(100,116,139,0.15)', border: t.muted };
   }
 }
 
 function getUrgencyDot(urgency: string): { color: string; pulse: boolean } {
   switch (urgency) {
-    case 'NOW': return { color: '#ef4444', pulse: true };
-    case 'TODAY': return { color: '#f59e0b', pulse: false };
-    case 'THIS_WEEK': return { color: '#3b82f6', pulse: false };
-    default: return { color: '#64748b', pulse: false };
+    case 'NOW': return { color: t.danger, pulse: true };
+    case 'TODAY': return { color: t.warning, pulse: false };
+    case 'THIS_WEEK': return { color: t.accent, pulse: false };
+    default: return { color: t.muted, pulse: false };
   }
 }
 
@@ -183,8 +184,8 @@ export default function ActivityFeed() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', margin: 0 }}>Activity Feed</h1>
-          <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0' }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: t.statValue, margin: 0 }}>Activity Feed</h1>
+          <p style={{ fontSize: 13, color: t.muted, margin: '4px 0 0' }}>
             {stats.total} accounts -- {stats.totalNext} actions pending -- {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
@@ -195,10 +196,10 @@ export default function ActivityFeed() {
             background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
           }}>
             <div style={{
-              width: 8, height: 8, borderRadius: '50%', background: '#ef4444',
+              width: 8, height: 8, borderRadius: '50%', background: t.danger,
               animation: 'pulse-dot 2s ease-in-out infinite',
             }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#ef4444' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: t.danger }}>
               {stats.needsAction} need action
             </span>
           </div>
@@ -208,18 +209,18 @@ export default function ActivityFeed() {
       {/* Stats bar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 24 }}>
         {[
-          { label: 'Need Action', value: stats.needsAction, color: '#ef4444' },
-          { label: 'Saved', value: stats.saved, color: '#22c55e' },
-          { label: 'Lost', value: stats.lost, color: '#ef4444' },
-          { label: 'Pending', value: stats.pending, color: '#f59e0b' },
-          { label: 'Total Accounts', value: stats.total, color: '#3b82f6' },
+          { label: 'Need Action', value: stats.needsAction, color: t.danger },
+          { label: 'Saved', value: stats.saved, color: t.success },
+          { label: 'Lost', value: stats.lost, color: t.danger },
+          { label: 'Pending', value: stats.pending, color: t.warning },
+          { label: 'Total Accounts', value: stats.total, color: t.accent },
         ].map(s => (
           <div key={s.label} style={{
-            background: '#1e293b', border: '1px solid #334155',
+            background: t.cardBg, border: `1px solid ${t.cardBorder}`,
             borderRadius: 10, padding: '12px 16px', textAlign: 'center',
           }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{s.label}</div>
+            <div style={{ fontSize: 11, color: t.muted, marginTop: 2 }}>{s.label}</div>
           </div>
         ))}
       </div>
@@ -238,9 +239,9 @@ export default function ActivityFeed() {
             onClick={() => setFilter(tab.key)}
             style={{
               padding: '6px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600,
-              border: filter === tab.key ? '1px solid #3b82f6' : '1px solid #334155',
+              border: filter === tab.key ? `1px solid ${t.accent}` : `1px solid ${t.cardBorder}`,
               background: filter === tab.key ? 'rgba(59,130,246,0.15)' : 'transparent',
-              color: filter === tab.key ? '#3b82f6' : '#94a3b8',
+              color: filter === tab.key ? t.accent : t.textSecondary,
               cursor: 'pointer',
             }}
           >
@@ -264,7 +265,7 @@ export default function ActivityFeed() {
 
           return (
             <div key={group.account} style={{
-              background: '#1e293b', border: '1px solid #334155',
+              background: t.cardBg, border: `1px solid ${t.cardBorder}`,
               borderLeft: `4px solid ${style.border}`,
               borderRadius: 10, overflow: 'hidden',
             }}>
@@ -279,8 +280,8 @@ export default function ActivityFeed() {
                 {/* Progress circle */}
                 <div style={{
                   width: 44, height: 44, borderRadius: '50%',
-                  background: hasNext ? '#334155' : style.bg,
-                  border: `2px solid ${hasNext ? '#64748b' : style.color}`,
+                  background: hasNext ? t.cardBorder : style.bg,
+                  border: `2px solid ${hasNext ? t.muted : style.color}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}>
@@ -289,7 +290,7 @@ export default function ActivityFeed() {
                       {group.decision === 'SAVED' ? '\u2714' : group.decision === 'LOST' ? '\u2718' : '\u2713'}
                     </span>
                   ) : (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: t.fg }}>
                       {group.completedActions.length}/{group.allActions.length}
                     </span>
                   )}
@@ -298,7 +299,7 @@ export default function ActivityFeed() {
                 {/* Account info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{group.account}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: t.statValue }}>{group.account}</span>
                     <span style={{
                       fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
                       background: style.bg, color: style.color, textTransform: 'uppercase',
@@ -308,7 +309,7 @@ export default function ActivityFeed() {
                     {hasNext && (
                       <span style={{
                         fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4,
-                        background: 'rgba(239,68,68,0.15)', color: '#ef4444',
+                        background: 'rgba(239,68,68,0.15)', color: t.danger,
                       }}>
                         {group.nextActions.length} step{group.nextActions.length > 1 ? 's' : ''} remaining
                       </span>
@@ -316,13 +317,13 @@ export default function ActivityFeed() {
                     {!hasNext && (
                       <span style={{
                         fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4,
-                        background: 'rgba(34,197,94,0.15)', color: '#22c55e',
+                        background: 'rgba(34,197,94,0.15)', color: t.success,
                       }}>
                         All done
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 3 }}>
+                  <div style={{ fontSize: 12, color: t.muted, marginTop: 3 }}>
                     {group.contact}{group.mrrAtRisk ? ` -- ${group.mrrAtRisk}` : ''}
                   </div>
 
@@ -338,8 +339,8 @@ export default function ActivityFeed() {
                           width: 6, height: 6, borderRadius: '50%',
                           background: getUrgencyDot(topUrgency.urgency).color,
                         }} />
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#f59e0b' }}>NEXT:</span>
-                        <span style={{ fontSize: 12, color: '#cbd5e1' }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: t.warning }}>NEXT:</span>
+                        <span style={{ fontSize: 12, color: t.cardBorder }}>
                           {topUrgency.task.length > 80 ? topUrgency.task.slice(0, 77) + '...' : topUrgency.task}
                         </span>
                       </div>
@@ -349,7 +350,7 @@ export default function ActivityFeed() {
 
                 {/* Expand arrow */}
                 <span style={{
-                  fontSize: 16, color: '#64748b', transition: 'transform 0.2s',
+                  fontSize: 16, color: t.muted, transition: 'transform 0.2s',
                   transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                   flexShrink: 0,
                 }}>
@@ -360,13 +361,13 @@ export default function ActivityFeed() {
               {/* Expanded: workflow timeline */}
               {isExpanded && (
                 <div style={{
-                  borderTop: '1px solid #334155', padding: '16px 20px 20px',
+                  borderTop: `1px solid ${t.cardBorder}`, padding: '16px 20px 20px',
                   background: 'rgba(15,23,42,0.5)',
                 }}>
                   {/* Completed steps */}
                   {group.completedActions.length > 0 && (
                     <div style={{ marginBottom: group.nextActions.length > 0 ? 16 : 0 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: '#22c55e', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: t.success, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Completed ({group.completedActions.length})
                       </div>
                       {group.completedActions.map(action => (
@@ -375,16 +376,16 @@ export default function ActivityFeed() {
                           borderBottom: '1px solid rgba(51,65,85,0.5)',
                           opacity: 0.7,
                         }}>
-                          <span style={{ fontSize: 14, color: '#22c55e', flexShrink: 0, marginTop: 1 }}>{'\u2714'}</span>
+                          <span style={{ fontSize: 14, color: t.success, flexShrink: 0, marginTop: 1 }}>{'\u2714'}</span>
                           <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                               <span style={{
                                 fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 3,
-                                background: 'rgba(34,197,94,0.15)', color: '#22c55e',
+                                background: 'rgba(34,197,94,0.15)', color: t.success,
                               }}>
                                 {getStepLabel(action)}
                               </span>
-                              <span style={{ fontSize: 12, color: '#94a3b8', textDecoration: 'line-through' }}>
+                              <span style={{ fontSize: 12, color: t.textSecondary, textDecoration: 'line-through' }}>
                                 {action.task.length > 90 ? action.task.slice(0, 87) + '...' : action.task}
                               </span>
                             </div>
@@ -397,7 +398,7 @@ export default function ActivityFeed() {
                   {/* Next steps */}
                   {group.nextActions.length > 0 && (
                     <div>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: '#ef4444', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: t.danger, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Next Steps ({group.nextActions.length})
                       </div>
                       {group.nextActions.map((action, idx) => {
@@ -421,7 +422,7 @@ export default function ActivityFeed() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                                 <span style={{
                                   fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 3,
-                                  background: urgDot.color === '#ef4444' ? 'rgba(239,68,68,0.2)' : urgDot.color === '#f59e0b' ? 'rgba(245,158,11,0.2)' : 'rgba(59,130,246,0.2)',
+                                  background: urgDot.color === t.danger ? 'rgba(239,68,68,0.2)' : urgDot.color === t.warning ? 'rgba(245,158,11,0.2)' : 'rgba(59,130,246,0.2)',
                                   color: urgDot.color,
                                 }}>
                                   {action.urgency}
@@ -433,15 +434,15 @@ export default function ActivityFeed() {
                                   {getStepLabel(action)}
                                 </span>
                                 {action.deadline && (
-                                  <span style={{ fontSize: 10, color: '#64748b' }}>
+                                  <span style={{ fontSize: 10, color: t.muted }}>
                                     Due: {action.deadline}
                                   </span>
                                 )}
                               </div>
-                              <div style={{ fontSize: 13, color: '#e2e8f0', marginTop: 4, lineHeight: '1.4' }}>
+                              <div style={{ fontSize: 13, color: t.fg, marginTop: 4, lineHeight: '1.4' }}>
                                 {action.task}
                               </div>
-                              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, lineHeight: '1.4' }}>
+                              <div style={{ fontSize: 12, color: t.muted, marginTop: 4, lineHeight: '1.4' }}>
                                 {action.details.length > 200 ? action.details.slice(0, 197) + '...' : action.details}
                               </div>
                             </div>
@@ -454,7 +455,7 @@ export default function ActivityFeed() {
                   {/* All done message */}
                   {group.nextActions.length === 0 && (
                     <div style={{
-                      textAlign: 'center', padding: '12px 0', color: '#22c55e',
+                      textAlign: 'center', padding: '12px 0', color: t.success,
                       fontSize: 13, fontWeight: 600,
                     }}>
                       All actions completed for this account
@@ -468,7 +469,7 @@ export default function ActivityFeed() {
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ textAlign: 'center', padding: 48, color: '#64748b', fontSize: 14 }}>
+        <div style={{ textAlign: 'center', padding: 48, color: t.muted, fontSize: 14 }}>
           No accounts match the current filter.
         </div>
       )}
