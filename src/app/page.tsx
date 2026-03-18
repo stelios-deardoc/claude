@@ -76,9 +76,16 @@ export default function Dashboard() {
 
   const [syncStatus, setSyncStatus] = useState<{ lastSyncedAt: string | null; reviewCount: number } | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [postCallResults, setPostCallResults] = useState<{ id: string; accountName: string; contactName: string; processedAt: string; summary?: { sentiment?: string; riskFlags?: string[] }; actionItems?: { status: string }[] }[]>([]);
+  const [postCallLoading, setPostCallLoading] = useState(false);
 
   useEffect(() => {
     fetch('/api/sync').then(r => r.json()).then(setSyncStatus).catch(() => {});
+    // Fetch recent post-call results
+    fetch('/api/post-call')
+      .then(r => r.json())
+      .then(data => { if (data?.results) setPostCallResults(data.results.slice(0, 5)); })
+      .catch(() => {});
   }, []);
 
   const months6 = useMemo(() => getLast6Months(), []);
@@ -634,6 +641,123 @@ export default function Dashboard() {
           </svg>
           View All Saves
         </button>
+      </div>
+
+      {/* Post-Call Center Widget */}
+      <div style={{ ...cardStyle, marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={t.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+            <div style={{ fontSize: '12px', color: t.muted, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Post-Call Center</div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => {
+                setPostCallLoading(true);
+                fetch('/api/post-call', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+                  .then(r => r.json())
+                  .then(() => fetch('/api/post-call').then(r => r.json()).then(data => { if (data?.results) setPostCallResults(data.results.slice(0, 5)); }))
+                  .catch(() => {})
+                  .finally(() => setPostCallLoading(false));
+              }}
+              disabled={postCallLoading}
+              style={{
+                padding: '6px 14px', borderRadius: '6px', border: `1px solid ${t.accent}`,
+                background: 'transparent', color: t.accent, fontSize: '12px', fontWeight: 600,
+                cursor: postCallLoading ? 'wait' : 'pointer', opacity: postCallLoading ? 0.6 : 1,
+                transition: 'all 0.15s',
+              }}
+            >
+              {postCallLoading ? 'Processing...' : 'Process Latest Call'}
+            </button>
+            <button
+              onClick={() => router.push('/post-call')}
+              style={{
+                padding: '6px 14px', borderRadius: '6px', border: `1px solid ${t.cardBorder}`,
+                background: 'transparent', color: t.textSecondary, fontSize: '12px', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+            >
+              View All
+            </button>
+          </div>
+        </div>
+        {postCallResults.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '32px 20px', color: t.muted, fontSize: '13px' }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 8px', display: 'block', opacity: 0.4 }}>
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+            No calls processed yet. Click &quot;Process Latest Call&quot; to analyze your most recent Fireflies transcript.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {postCallResults.map(result => {
+              const pendingActions = result.actionItems?.filter(a => a.status === 'pending').length || 0;
+              const sentiment = result.summary?.sentiment;
+              const sentimentColor = sentiment === 'positive' ? t.success : sentiment === 'negative' ? t.danger : sentiment === 'concerned' ? t.warning : t.muted;
+              const riskFlags = result.summary?.riskFlags || [];
+              const timeAgo = (() => {
+                const diff = Date.now() - new Date(result.processedAt).getTime();
+                const mins = Math.floor(diff / 60000);
+                if (mins < 60) return `${mins}m ago`;
+                const hrs = Math.floor(mins / 60);
+                if (hrs < 24) return `${hrs}h ago`;
+                return `${Math.floor(hrs / 24)}d ago`;
+              })();
+              return (
+                <div
+                  key={result.id}
+                  onClick={() => router.push('/post-call')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '10px 14px', background: t.bg, borderRadius: '8px',
+                    cursor: 'pointer', transition: 'background 0.15s', border: '1px solid transparent',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = t.cardBg; e.currentTarget.style.borderColor = t.textTertiary; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = t.bg; e.currentTarget.style.borderColor = 'transparent'; }}
+                >
+                  <div style={{
+                    width: '36px', height: '36px', borderRadius: '50%',
+                    background: `${sentimentColor}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={sentimentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                    </svg>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: t.fg }}>{result.accountName || 'Unknown Account'}</span>
+                      {result.contactName && <span style={{ fontSize: '11px', color: t.muted }}>{result.contactName}</span>}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px' }}>
+                      {sentiment && (
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: sentimentColor, textTransform: 'uppercase' }}>{sentiment}</span>
+                      )}
+                      {riskFlags.length > 0 && (
+                        <span style={{ fontSize: '10px', color: t.danger, fontWeight: 600 }}>
+                          {riskFlags.length} risk flag{riskFlags.length > 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    {pendingActions > 0 && (
+                      <span style={{
+                        fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px',
+                        background: `${t.warning}22`, color: t.warning,
+                      }}>
+                        {pendingActions} action{pendingActions > 1 ? 's' : ''}
+                      </span>
+                    )}
+                    <span style={{ fontSize: '11px', color: t.muted }}>{timeAgo}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Row 4: Accounts Needing Attention | Biggest Deals + Recent Activity */}
