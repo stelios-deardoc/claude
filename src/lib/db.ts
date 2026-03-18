@@ -23,6 +23,7 @@ export const KEYS = {
   EMAIL_WORKFLOW: 'email-workflow:data',
   CALENDAR_EVENTS: 'calendar:events',
   POST_CALL_STATE: 'post-call:state',
+  POST_CALL_DATA: 'post-call:data',
   ACCOUNT_NOTES: 'account:notes',
   ACTIONS_DATA: 'actions:data',
 } as const;

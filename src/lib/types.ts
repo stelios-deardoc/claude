@@ -195,3 +195,87 @@ export interface EmailWorkflowData {
   pendingActions: PendingAction[];
   emails: ProcessedEmail[];
 }
+
+// ============================================================
+// Post-Call Command Center Types
+// ============================================================
+
+export type PostCallStatus = 'pending' | 'gathering' | 'processing' | 'complete' | 'error';
+
+export interface TranscriptData {
+  firefliesId: string;
+  title: string;
+  date: string;
+  duration: number;           // minutes
+  participants: string[];
+  transcript: string;         // full text (truncated for AI)
+  summary: string;            // Fireflies summary
+  actionItems: string[];      // Fireflies-detected items
+  topics: string[];
+}
+
+export interface GatheredContext {
+  transcript: TranscriptData;
+  matchedCall: Call | null;
+  gmailThreads: { threadId: string; subject: string; snippet: string; lastDate: string }[];
+  calendarEvents: { id: string; summary: string; start: string; attendees: string[] }[];
+  npiData: { npi: string; name: string; specialty: string; address: string; phone: string } | null;
+  slackMentions: { channel: string; text: string; timestamp: string; user: string }[];
+  accountNotes: string;
+  existingActions: { id: string; task: string; urgency: string; completed: boolean }[];
+  gatheredAt: string;
+}
+
+export interface PostCallSummary {
+  overview: string;
+  discussionPoints: { topic: string; details: string; outcome: string }[];
+  decisions: string[];
+  nextSteps: string[];
+  sentiment: 'positive' | 'neutral' | 'negative';
+  riskFlags: string[];
+}
+
+export interface PostCallActionItem {
+  id: string;
+  task: string;
+  details: string;
+  owner: 'stelios' | 'client' | 'internal';
+  priority: 'high' | 'medium' | 'low';
+  deadline: string;
+  category: 'follow-up' | 'email' | 'internal' | 'salesforce' | 'billing' | 'other';
+  status: 'pending' | 'accepted' | 'dismissed';
+}
+
+export interface PostCallDraft {
+  id: string;
+  type: 'client-followup' | 'internal-update' | 'escalation';
+  to: string;
+  subject: string;
+  body: string;
+  tone: 'value-first' | 'enforcement' | 'hybrid' | 'internal' | 'brief';
+  strategy: string;
+  gmailDraftId: string;       // '' until created in Gmail
+  status: 'generated' | 'edited' | 'drafted' | 'dismissed';
+}
+
+export interface PostCallResult {
+  id: string;
+  status: PostCallStatus;
+  error?: string;
+  firefliesTranscriptId: string;
+  context: GatheredContext;
+  summary: PostCallSummary;
+  actionItems: PostCallActionItem[];
+  emailDrafts: PostCallDraft[];
+  accountNotesUpdate: string;
+  saveDeskSuggestions: { field: string; currentValue: string; suggestedValue: string; reason: string }[];
+  processedAt: string;
+  accountName: string;
+  contactName: string;
+}
+
+export interface PostCallData {
+  results: PostCallResult[];
+  lastProcessedAt: string;
+  processedTranscriptIds: string[];
+}
