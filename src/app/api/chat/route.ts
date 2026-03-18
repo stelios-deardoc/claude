@@ -1,6 +1,9 @@
 import { streamText, stepCountIs } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
+import { auth } from '@/lib/auth';
 import { saveDeskTools } from '@/lib/ai/tools/save-desk';
+import { createGmailTools } from '@/lib/ai/tools/gmail';
+import { createCalendarTools } from '@/lib/ai/tools/calendar';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -17,10 +20,12 @@ DearDoc is a healthcare SaaS company selling AI-powered tools to dental and medi
 
 ## Your Capabilities
 You have tools to access:
-- **Save desk data** - All calls, statuses, accounts, commission info
-- **Email workflow** - Processed emails with priorities, drafts, research
-- **Account notes** - Running log of all account interactions
-- **Action items** - Prioritized task list with deadlines
+- **Save desk data** - All calls, statuses, accounts, commission info (from Redis)
+- **Email workflow** - Processed emails with priorities, drafts, research (from Redis)
+- **Account notes** - Running log of all account interactions (from Redis)
+- **Action items** - Prioritized task list with deadlines (from Redis)
+- **Gmail** - Search emails, read threads, create drafts (LIVE from Gmail API)
+- **Google Calendar** - View today's meetings, upcoming calls (LIVE from Calendar API)
 
 ## Key Rules
 1. **NEVER act on Stelios's behalf without authorization** - always draft and present for review
@@ -29,6 +34,8 @@ You have tools to access:
 4. **Contract enforcement is LAST RESORT** - never lead with it
 5. When asked about an account, search the save desk data AND account notes for full context
 6. Keep responses concise and actionable - Stelios is busy on calls all day
+7. When creating email drafts, ALWAYS use createGmailDraft - never claim to have sent an email
+8. When searching Gmail, use smart queries: "from:client newer_than:30d", "subject:cancel", etc.
 
 ## Commission Formula
 - Save Rate = Saved / (Saved + Countable Lost)
@@ -37,23 +44,39 @@ You have tools to access:
 - Excluded = Guarantee Hits, Legal, AM Save Remorse
 
 ## Trigger Phrases (use the right tool automatically)
-- "what's going on with [account]" -> search save desk data + account notes
+- "what's going on with [account]" -> search save desk data + account notes + search Gmail for recent threads
 - "how many saves", "save rate", "commission" -> get save desk stats
 - "check my emails", "what needs response" -> get email workflow
 - "what do I need to do", "action items" -> get actions list
-- "notes on [account]" -> search account notes`;
+- "notes on [account]" -> search account notes
+- "prep my day", "what calls today" -> list calendar events for today
+- "draft an email to..." -> create Gmail draft (never send)
+- "search my email for..." -> search Gmail
+- "read that thread" -> read Gmail thread by ID`;
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
+
+  // Get the user's Google OAuth access token from the session
+  const session = await auth();
+  const accessToken = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+
+  // Build tools - Gmail/Calendar tools need the access token
+  const tools: Record<string, unknown> = {
+    ...saveDeskTools,
+  };
+
+  if (accessToken) {
+    Object.assign(tools, createGmailTools(accessToken));
+    Object.assign(tools, createCalendarTools(accessToken));
+  }
 
   const result = streamText({
     model: anthropic('claude-sonnet-4-20250514'),
     system: SYSTEM_PROMPT,
     messages,
-    tools: {
-      ...saveDeskTools,
-    },
-    stopWhen: stepCountIs(5),
+    tools: tools as Parameters<typeof streamText>[0]['tools'],
+    stopWhen: stepCountIs(8),
   });
 
   return result.toUIMessageStreamResponse();
