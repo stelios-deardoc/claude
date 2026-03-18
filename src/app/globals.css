@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-:root {
+/* Dark theme (default) */
+:root, [data-theme="dark"] {
   --background: #0f172a;
   --foreground: #e2e8f0;
   --card-bg: #1e293b;
@@ -11,6 +12,40 @@
   --warning: #f59e0b;
   --success: #22c55e;
   --muted: #64748b;
+  --sidebar-bg: #0f1729;
+  --sidebar-title: #ffffff;
+  --stat-value: #ffffff;
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --active-bg: rgba(59, 130, 246, 0.1);
+  --modal-backdrop: rgba(0, 0, 0, 0.6);
+  --badge-saved-bg: rgba(34, 197, 94, 0.2);
+  --badge-lost-bg: rgba(239, 68, 68, 0.2);
+  --badge-pending-bg: rgba(245, 158, 11, 0.2);
+  --badge-neutral-bg: rgba(100, 116, 139, 0.2);
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --background: #f8fafc;
+  --foreground: #1e293b;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --success: #16a34a;
+  --muted: #64748b;
+  --sidebar-bg: #ffffff;
+  --sidebar-title: #0f172a;
+  --stat-value: #0f172a;
+  --hover-bg: rgba(0, 0, 0, 0.04);
+  --active-bg: rgba(37, 99, 235, 0.08);
+  --modal-backdrop: rgba(0, 0, 0, 0.4);
+  --badge-saved-bg: rgba(22, 163, 74, 0.12);
+  --badge-lost-bg: rgba(220, 38, 38, 0.12);
+  --badge-pending-bg: rgba(217, 119, 6, 0.12);
+  --badge-neutral-bg: rgba(100, 116, 139, 0.1);
 }
 
 @theme inline {
@@ -48,7 +83,7 @@ body {
 .sidebar {
   width: 240px;
   min-width: 240px;
-  background: #0f1729;
+  background: var(--sidebar-bg);
   border-right: 1px solid var(--card-border);
   display: flex;
   flex-direction: column;
@@ -67,7 +102,7 @@ body {
 .sidebar-title {
   font-size: 20px;
   font-weight: 700;
-  color: #fff;
+  color: var(--sidebar-title);
   margin: 0;
 }
 
@@ -97,12 +132,12 @@ body {
 
 .nav-item:hover {
   color: var(--foreground);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-bg);
 }
 
 .nav-item.active {
   color: var(--accent);
-  background: rgba(59, 130, 246, 0.1);
+  background: var(--active-bg);
   border-left-color: var(--accent);
 }
 
@@ -142,7 +177,7 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--modal-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -176,11 +211,11 @@ body {
   letter-spacing: 0.5px;
 }
 
-.badge-saved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-.badge-lost { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-.badge-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-.badge-excluded { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
-.badge-other { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
+.badge-saved { background: var(--badge-saved-bg); color: var(--success); }
+.badge-lost { background: var(--badge-lost-bg); color: var(--danger); }
+.badge-pending { background: var(--badge-pending-bg); color: var(--warning); }
+.badge-excluded { background: var(--badge-neutral-bg); color: var(--muted); }
+.badge-other { background: var(--badge-neutral-bg); color: var(--muted); }
 
 /* Cards */
 .card {
@@ -208,7 +243,26 @@ body {
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  color: #fff;
+  color: var(--stat-value);
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.theme-toggle:hover {
+  color: var(--foreground);
+  background: var(--hover-bg);
 }
 
 /* Form styles */
