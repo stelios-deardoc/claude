@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { saveDeskTools } from '@/lib/ai/tools/save-desk';
 import { createGmailTools } from '@/lib/ai/tools/gmail';
 import { createCalendarTools } from '@/lib/ai/tools/calendar';
+import { postCallTools } from '@/lib/ai/tools/post-call';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -52,7 +53,10 @@ You have tools to access:
 - "prep my day", "what calls today" -> list calendar events for today
 - "draft an email to..." -> create Gmail draft (never send)
 - "search my email for..." -> search Gmail
-- "read that thread" -> read Gmail thread by ID`;
+- "read that thread" -> read Gmail thread by ID
+- "process my call", "post call notes" -> trigger post-call processing
+- "what happened on the call with [account]" -> get post-call results
+- "show my recent transcripts", "what calls do I have" -> list recent transcripts`;
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
@@ -64,6 +68,7 @@ export async function POST(req: Request) {
   // Build tools - Gmail/Calendar tools need the access token
   const tools: Record<string, unknown> = {
     ...saveDeskTools,
+    ...postCallTools,
   };
 
   if (accessToken) {
