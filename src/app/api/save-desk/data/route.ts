@@ -27,8 +27,16 @@ async function readData(): Promise<SaveDeskData> {
 
 // GET -- read all data
 export async function GET() {
-  const data = await readData();
-  return NextResponse.json(data);
+  try {
+    const data = await readData();
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error('GET /api/save-desk/data error:', err);
+    return NextResponse.json(
+      { error: 'Failed to read data', details: String(err) },
+      { status: 500 },
+    );
+  }
 }
 
 // PUT -- full state sync (calls, splits, cdpLevel, clawback)
