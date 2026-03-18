@@ -42,6 +42,7 @@ export default function EmailPage() {
   const handleSend = (id: string) => handleAction('send', id);
   const handleArchive = (id: string) => handleAction('archive', id);
   const handleSnooze = (id: string, until: string) => handleAction('snooze', id, { snoozeUntil: until });
+  const handleSaveDraft = (id: string, body: string) => handleAction('save_draft', id, { draftBody: body });
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -123,9 +124,9 @@ export default function EmailPage() {
         <div style={{ flex: 1, minWidth: '400px' }}>
           <EmailDetail
             email={selectedEmail}
-            onSend={handleSend}
             onArchive={handleArchive}
             onSnooze={handleSnooze}
+            onSaveDraft={handleSaveDraft}
           />
         </div>
       )}

@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# data files (persisted in Redis in production)
+data/*.json
+
+# temp files
+*.csv
+tmp-*
+
+# claude code local files
+.claude/

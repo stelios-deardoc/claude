@@ -6,6 +6,8 @@ import {
   categorizeStatus,
   getContractValue,
   calculateCountableLost,
+  calculateCountableSaved,
+  calculateCountablePending,
   hasGuaranteeIssue,
   isLegalCase,
   isBadStandingOnly,
@@ -131,9 +133,10 @@ export default function CommissionPage() {
     [calls],
   );
 
+  const countableSaved = useMemo(() => calculateCountableSaved(savedCalls), [savedCalls]);
   const countableLost = useMemo(() => calculateCountableLost(lostCalls), [lostCalls]);
-  const totalCountable = savedCalls.length + countableLost;
-  const saveRate = totalCountable > 0 ? (savedCalls.length / totalCountable) * 100 : 0;
+  const totalCountable = countableSaved + countableLost;
+  const saveRate = totalCountable > 0 ? (countableSaved / totalCountable) * 100 : 0;
   const totalRevenue = useMemo(
     () => savedCalls.reduce((sum, c) => sum + getContractValue(c), 0),
     [savedCalls],
@@ -176,10 +179,10 @@ export default function CommissionPage() {
   const toGoal = Math.round((saveRate / 40) * 100);
 
   // ---- What-If (worst case) ----
-  const countablePendingLost = useMemo(() => calculateCountableLost(pendingCalls), [pendingCalls]);
-  const worstCaseLost = countableLost + countablePendingLost;
-  const worstCaseCountable = savedCalls.length + worstCaseLost;
-  const worstCaseRate = worstCaseCountable > 0 ? (savedCalls.length / worstCaseCountable) * 100 : 0;
+  const countablePendingAsLost = useMemo(() => calculateCountablePending(pendingCalls), [pendingCalls]);
+  const worstCaseLost = countableLost + countablePendingAsLost;
+  const worstCaseCountable = countableSaved + worstCaseLost;
+  const worstCaseRate = worstCaseCountable > 0 ? (countableSaved / worstCaseCountable) * 100 : 0;
   const worstRoundedRate = Math.floor(worstCaseRate / 5) * 5;
 
   const worstTier = useMemo(() => {
@@ -195,6 +198,124 @@ export default function CommissionPage() {
 
   const worstCaseCommission = adjustedRevenue * (worstTier.revenuePercent / 100);
   const potentialLoss = commission - worstCaseCommission;
+
+  // ---- MRR % Save Rate (April Model) ----
+
+  // Helper: get monthly rate from a call (MRR, not total contract value)
+  const getMRR = (c: Call): number => parseFloat(c.monthlySalesPrice) || 0;
+
+  // Helper: parse call month from saveDateTime or importDate
+  const getCallMonth = (c: Call): string => {
+    const raw = c.saveDateTime || c.importDate || '';
+    if (!raw) return '';
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return '';
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  // Current month MRR save rate (all calls, same as top-level filter)
+  const savedMRR = useMemo(() => savedCalls.reduce((s, c) => s + getMRR(c), 0), [savedCalls]);
+  const lostMRR = useMemo(() => lostCalls.reduce((s, c) => s + getMRR(c), 0), [lostCalls]);
+  const totalMRR = savedMRR + lostMRR;
+  const mrrSaveRate = totalMRR > 0 ? (savedMRR / totalMRR) * 100 : 0;
+  const mrrRoundedRate = Math.floor(mrrSaveRate / 5) * 5;
+
+  const mrrTier = useMemo(() => {
+    let matched = tiers[tiers.length - 1];
+    for (const tier of tiers) {
+      if (mrrRoundedRate >= tier.saveRate) { matched = tier; break; }
+    }
+    return matched;
+  }, [tiers, mrrRoundedRate]);
+
+  const mrrCommission = adjustedRevenue * (mrrTier.revenuePercent / 100);
+
+  // Monthly breakdown (last 6 months)
+  interface MonthRow {
+    key: string;
+    label: string;
+    savedMRR: number;
+    lostMRR: number;
+    totalMRR: number;
+    rate: number;
+    roundedRate: number;
+    tier: CDPTier;
+    revPercent: number;
+    revenue: number;
+    commission: number;
+    isCurrent: boolean;
+  }
+
+  const monthlyBreakdown: MonthRow[] = useMemo(() => {
+    const months: string[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+    }
+
+    return months.map((mKey) => {
+      const mSaved = savedCalls.filter(c => getCallMonth(c) === mKey);
+      const mLost = lostCalls.filter(c => getCallMonth(c) === mKey);
+      const sMRR = mSaved.reduce((s, c) => s + getMRR(c), 0);
+      const lMRR = mLost.reduce((s, c) => s + getMRR(c), 0);
+      const total = sMRR + lMRR;
+      const rate = total > 0 ? (sMRR / total) * 100 : 0;
+      const rounded = Math.floor(rate / 5) * 5;
+
+      let matchedTier = tiers[tiers.length - 1];
+      for (const tier of tiers) {
+        if (rounded >= tier.saveRate) { matchedTier = tier; break; }
+      }
+
+      const rev = mSaved.reduce((s, c) => s + getContractValue(c), 0);
+
+      const d = new Date(parseInt(mKey.split('-')[0]), parseInt(mKey.split('-')[1]) - 1, 1);
+      return {
+        key: mKey,
+        label: d.toLocaleString('en-US', { month: 'short', year: 'numeric' }),
+        savedMRR: sMRR,
+        lostMRR: lMRR,
+        totalMRR: total,
+        rate,
+        roundedRate: rounded,
+        tier: matchedTier,
+        revPercent: matchedTier.revenuePercent,
+        revenue: rev,
+        commission: rev * (matchedTier.revenuePercent / 100),
+        isCurrent: mKey === thisMonth,
+      };
+    });
+  }, [savedCalls, lostCalls, tiers, thisMonth]);
+
+  // MRR worst case (pending all lost)
+  const pendingMRR = useMemo(() => pendingCalls.reduce((s, c) => s + getMRR(c), 0), [pendingCalls]);
+  const mrrWorstCaseTotal = savedMRR + lostMRR + pendingMRR;
+  const mrrWorstCaseRate = mrrWorstCaseTotal > 0 ? (savedMRR / mrrWorstCaseTotal) * 100 : 0;
+  const mrrWorstRounded = Math.floor(mrrWorstCaseRate / 5) * 5;
+
+  const mrrWorstTier = useMemo(() => {
+    let matched = tiers[tiers.length - 1];
+    for (const tier of tiers) {
+      if (mrrWorstRounded >= tier.saveRate) { matched = tier; break; }
+    }
+    return matched;
+  }, [tiers, mrrWorstRounded]);
+
+  // MRR best case (pending all saved)
+  const mrrBestCaseTotal = savedMRR + pendingMRR + lostMRR;
+  const mrrBestCaseRate = mrrBestCaseTotal > 0 ? ((savedMRR + pendingMRR) / mrrBestCaseTotal) * 100 : 0;
+  const mrrBestRounded = Math.floor(mrrBestCaseRate / 5) * 5;
+
+  const mrrBestTier = useMemo(() => {
+    let matched = tiers[tiers.length - 1];
+    for (const tier of tiers) {
+      if (mrrBestRounded >= tier.saveRate) { matched = tier; break; }
+    }
+    return matched;
+  }, [tiers, mrrBestRounded]);
 
   // ---- CDP Level options ----
   const cdpOptions: { key: CDPLevelKey; label: string }[] = [
@@ -300,7 +421,8 @@ export default function CommissionPage() {
             <hr style={{ border: 'none', borderTop: '1px solid #3f3f46', margin: '4px 0' }} />
             <div style={{ display: 'flex', gap: 20 }}>
               <span style={{ color: dimText }}>
-                Saved: <span style={{ color: green, fontWeight: 600 }}>{savedCalls.length}</span>
+                Saved: <span style={{ color: green, fontWeight: 600 }}>{countableSaved}</span>
+                {countableSaved !== savedCalls.length && <span style={{ color: dimText, fontSize: 11 }}> ({savedCalls.length} raw)</span>}
               </span>
               <span style={{ color: dimText }}>
                 Countable Lost: <span style={{ color: red, fontWeight: 600 }}>{countableLost}</span>
@@ -319,10 +441,15 @@ export default function CommissionPage() {
             <div>
               <span style={{ color: dimText }}>Step 1: </span>
               <span style={{ color: lightText }}>
-                Save Rate = {savedCalls.length} / ({savedCalls.length} + {countableLost}) ={' '}
+                Save Rate = {countableSaved} / ({countableSaved} + {countableLost}) ={' '}
                 <span style={{ color: green, fontWeight: 600 }}>{saveRate.toFixed(1)}%</span>
               </span>
             </div>
+            {countableSaved !== savedCalls.length && (
+              <div style={{ fontSize: 11, color: dimText, paddingLeft: 48 }}>
+                ({savedCalls.length} saved, {savedCalls.length - countableSaved} at 0.5x for bad standing)
+              </div>
+            )}
             <div>
               <span style={{ color: dimText }}>Step 2: </span>
               <span style={{ color: lightText }}>
@@ -605,6 +732,259 @@ export default function CommissionPage() {
           </div>
         </div>
       )}
+
+      {/* ================================================================= */}
+      {/* MRR % Save Rate - April Model                                     */}
+      {/* ================================================================= */}
+      <div style={{ ...card, border: '1px solid #6366f144', marginTop: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div>
+            <div style={{ ...cardTitle, color: '#a5b4fc', marginBottom: 4 }}>
+              MRR % Save Rate -- April Model
+            </div>
+            <div style={{ color: dimText, fontSize: 12 }}>
+              Uses dollar-weighted MRR instead of countable points. Starting April 2026.
+            </div>
+          </div>
+          <div style={{
+            background: '#6366f122',
+            color: '#a5b4fc',
+            border: '1px solid #6366f144',
+            borderRadius: 8,
+            padding: '4px 12px',
+            fontSize: 12,
+            fontWeight: 600,
+          }}>
+            PREVIEW
+          </div>
+        </div>
+
+        {/* Side-by-side: Current vs MRR */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+          {/* Current (countable points) */}
+          <div style={{ background: '#27272a', borderRadius: 10, padding: 16 }}>
+            <div style={{ fontSize: 11, color: dimText, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+              Current Model (Countable Points)
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ color: dimText, fontSize: 13 }}>Save Rate</span>
+              <span style={{ color: saveRate >= 40 ? green : red, fontWeight: 700, fontSize: 18 }}>{saveRate.toFixed(1)}%</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ color: dimText, fontSize: 13 }}>Tier</span>
+              <span style={{ color: lightText, fontWeight: 600 }}>{roundedSaveRate}%</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ color: dimText, fontSize: 13 }}>% of Revenue</span>
+              <span style={{ color: lightText, fontWeight: 600 }}>{revenuePercent}%</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: dimText, fontSize: 13 }}>Commission</span>
+              <span style={{ color: green, fontWeight: 700 }}>${fmt(commission)}</span>
+            </div>
+            <hr style={{ border: 'none', borderTop: '1px solid #3f3f46', margin: '10px 0 6px' }} />
+            <div style={{ color: dimText, fontSize: 11 }}>
+              {countableSaved} saved / ({countableSaved} + {countableLost}) = {saveRate.toFixed(1)}%
+            </div>
+          </div>
+
+          {/* MRR-based */}
+          <div style={{ background: '#1e1b4b', borderRadius: 10, padding: 16, border: '1px solid #6366f133' }}>
+            <div style={{ fontSize: 11, color: '#a5b4fc', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+              April Model (MRR-Weighted)
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ color: '#818cf8', fontSize: 13 }}>MRR Save Rate</span>
+              <span style={{ color: mrrSaveRate >= 40 ? green : red, fontWeight: 700, fontSize: 18 }}>{mrrSaveRate.toFixed(1)}%</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ color: '#818cf8', fontSize: 13 }}>Tier</span>
+              <span style={{ color: lightText, fontWeight: 600 }}>{mrrRoundedRate}%</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ color: '#818cf8', fontSize: 13 }}>% of Revenue</span>
+              <span style={{ color: lightText, fontWeight: 600 }}>{mrrTier.revenuePercent}%</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#818cf8', fontSize: 13 }}>Commission</span>
+              <span style={{ color: '#a5b4fc', fontWeight: 700 }}>${fmt(mrrCommission)}</span>
+            </div>
+            <hr style={{ border: 'none', borderTop: '1px solid #6366f133', margin: '10px 0 6px' }} />
+            <div style={{ color: '#818cf8', fontSize: 11 }}>
+              ${fmtInt(savedMRR)} saved / (${fmtInt(savedMRR)} + ${fmtInt(lostMRR)}) = {mrrSaveRate.toFixed(1)}%
+            </div>
+          </div>
+        </div>
+
+        {/* Delta indicator */}
+        {totalMRR > 0 && (
+          <div style={{
+            background: mrrCommission >= commission ? '#22c55e11' : '#ef444411',
+            border: `1px solid ${mrrCommission >= commission ? green : red}33`,
+            borderRadius: 8,
+            padding: '10px 16px',
+            marginBottom: 20,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+            <span style={{ color: dimText, fontSize: 13 }}>
+              Impact of switching to MRR model
+            </span>
+            <span style={{
+              color: mrrCommission >= commission ? green : red,
+              fontWeight: 700,
+              fontSize: 16,
+            }}>
+              {mrrCommission >= commission ? '+' : ''}{fmt(mrrCommission - commission)}
+              <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 6, color: dimText }}>
+                ({mrrSaveRate > saveRate ? '+' : ''}{(mrrSaveRate - saveRate).toFixed(1)}% rate)
+              </span>
+            </span>
+          </div>
+        )}
+
+        {/* 6-Month Breakdown Table */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#a5b4fc', marginBottom: 10 }}>
+            Monthly Breakdown -- Last 6 Months
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr>
+                  {['Month', 'Saved MRR', 'Lost MRR', 'MRR Rate', 'Tier', 'Rev %', 'Commission'].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        textAlign: h === 'Month' ? 'left' : 'right',
+                        padding: '8px 10px',
+                        color: '#818cf8',
+                        fontWeight: 600,
+                        borderBottom: '1px solid #6366f133',
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {monthlyBreakdown.map((m, i) => (
+                  <tr
+                    key={m.key}
+                    style={{
+                      background: m.isCurrent ? '#6366f118' : i % 2 === 0 ? 'transparent' : '#ffffff04',
+                    }}
+                  >
+                    <td style={{
+                      padding: '8px 10px',
+                      color: m.isCurrent ? '#a5b4fc' : lightText,
+                      fontWeight: m.isCurrent ? 700 : 400,
+                      borderLeft: m.isCurrent ? '3px solid #6366f1' : '3px solid transparent',
+                    }}>
+                      {m.label}{m.isCurrent ? ' *' : ''}
+                    </td>
+                    <td style={{ textAlign: 'right', padding: '8px 10px', color: green, fontWeight: 600 }}>
+                      {m.savedMRR > 0 ? `$${fmtInt(m.savedMRR)}` : '-'}
+                    </td>
+                    <td style={{ textAlign: 'right', padding: '8px 10px', color: red, fontWeight: 600 }}>
+                      {m.lostMRR > 0 ? `$${fmtInt(m.lostMRR)}` : '-'}
+                    </td>
+                    <td style={{
+                      textAlign: 'right',
+                      padding: '8px 10px',
+                      color: m.totalMRR === 0 ? dimText : m.rate >= 40 ? green : red,
+                      fontWeight: 700,
+                    }}>
+                      {m.totalMRR > 0 ? `${m.rate.toFixed(1)}%` : '-'}
+                    </td>
+                    <td style={{ textAlign: 'right', padding: '8px 10px', color: lightText }}>
+                      {m.totalMRR > 0 ? `${m.roundedRate}%` : '-'}
+                    </td>
+                    <td style={{ textAlign: 'right', padding: '8px 10px', color: lightText, fontWeight: m.isCurrent ? 700 : 400 }}>
+                      {m.totalMRR > 0 ? `${m.revPercent}%` : '-'}
+                    </td>
+                    <td style={{
+                      textAlign: 'right',
+                      padding: '8px 10px',
+                      color: m.isCurrent ? '#a5b4fc' : dimText,
+                      fontWeight: m.isCurrent ? 700 : 400,
+                    }}>
+                      {m.revenue > 0 ? `$${fmt(m.commission)}` : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Projections (Best / Worst with pending) */}
+        {pendingCalls.length > 0 && (
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#a5b4fc', marginBottom: 10 }}>
+              Projections -- {pendingCalls.length} Pending (${fmtInt(pendingMRR)}/mo MRR at stake)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ background: '#22c55e0a', border: `1px solid ${green}22`, borderRadius: 10, padding: 14 }}>
+                <div style={{ fontSize: 11, color: green, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8, fontWeight: 600 }}>
+                  Best Case -- All Pending Saved
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                  <div>
+                    <div style={{ color: dimText, fontSize: 10, textTransform: 'uppercase', marginBottom: 2 }}>MRR Rate</div>
+                    <div style={{ color: green, fontSize: 20, fontWeight: 700 }}>{mrrBestCaseRate.toFixed(1)}%</div>
+                  </div>
+                  <div>
+                    <div style={{ color: dimText, fontSize: 10, textTransform: 'uppercase', marginBottom: 2 }}>Tier</div>
+                    <div style={{ color: lightText, fontSize: 20, fontWeight: 700 }}>{mrrBestRounded}%</div>
+                  </div>
+                  <div>
+                    <div style={{ color: dimText, fontSize: 10, textTransform: 'uppercase', marginBottom: 2 }}>Rev %</div>
+                    <div style={{ color: green, fontSize: 20, fontWeight: 700 }}>{mrrBestTier.revenuePercent}%</div>
+                  </div>
+                </div>
+              </div>
+              <div style={{ background: '#ef44440a', border: `1px solid ${red}22`, borderRadius: 10, padding: 14 }}>
+                <div style={{ fontSize: 11, color: red, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8, fontWeight: 600 }}>
+                  Worst Case -- All Pending Lost
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                  <div>
+                    <div style={{ color: dimText, fontSize: 10, textTransform: 'uppercase', marginBottom: 2 }}>MRR Rate</div>
+                    <div style={{ color: red, fontSize: 20, fontWeight: 700 }}>{mrrWorstCaseRate.toFixed(1)}%</div>
+                  </div>
+                  <div>
+                    <div style={{ color: dimText, fontSize: 10, textTransform: 'uppercase', marginBottom: 2 }}>Tier</div>
+                    <div style={{ color: lightText, fontSize: 20, fontWeight: 700 }}>{mrrWorstRounded}%</div>
+                  </div>
+                  <div>
+                    <div style={{ color: dimText, fontSize: 10, textTransform: 'uppercase', marginBottom: 2 }}>Rev %</div>
+                    <div style={{ color: red, fontSize: 20, fontWeight: 700 }}>{mrrWorstTier.revenuePercent}%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MRR Formula Explainer */}
+        <div style={{ marginTop: 16, padding: '12px 16px', background: '#6366f10a', borderRadius: 8, border: '1px solid #6366f122' }}>
+          <div style={{ color: '#818cf8', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>How MRR % Save Rate Works</div>
+          <div style={{ color: dimText, fontSize: 12, lineHeight: 1.6 }}>
+            Instead of counting saves/losses as equal points, each account is weighted by its monthly revenue.{' '}
+            A $2,000/mo save counts 4x more than a $500/mo save.{' '}
+            <span style={{ color: '#a5b4fc' }}>
+              MRR Save Rate = Saved MRR / (Saved MRR + Lost MRR)
+            </span>
+            . Same CDP tier table applies.
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

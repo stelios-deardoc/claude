@@ -128,6 +128,44 @@ export function calculateCountableLost(lostCalls: Call[]): number {
   return countable;
 }
 
+// Calculate countable value for any set of calls applying bad standing 0.5x penalty
+// Bad standing = 0.5 points, Good/Unknown standing = 1 point, Guarantee/Legal = 0 points
+export function calculateCountablePoints(calls: Call[]): number {
+  let countable = 0;
+  calls.forEach(call => {
+    if (isFullyExcludedFromCommission(call)) countable += 0;
+    else if (isBadStandingOnly(call)) countable += 0.5;
+    else countable += 1;
+  });
+  return countable;
+}
+
+// Calculate countable saved: Good standing=1, Bad standing=0.5
+export function calculateCountableSaved(savedCalls: Call[]): number {
+  let countable = 0;
+  savedCalls.forEach(call => {
+    if (isBadStandingOnly(call)) countable += 0.5;
+    else countable += 1;
+  });
+  return countable;
+}
+
+// Calculate countable pending: Good standing=1, Bad standing=0.5
+export function calculateCountablePending(pendingCalls: Call[]): number {
+  let countable = 0;
+  pendingCalls.forEach(call => {
+    if (isBadStandingOnly(call)) countable += 0.5;
+    else countable += 1;
+  });
+  return countable;
+}
+
+// Check if a call has any accounting changes recorded
+export function hasAccountingChanges(call: Call): boolean {
+  return !!(call.refundAmount || call.contractSwap === 'Yes' ||
+            call.relaunch === 'Yes' || call.accountingNotes || call.dateChanged);
+}
+
 // Get initials from a name for avatar display
 export function getInitials(name: string): string {
   if (!name) return '?';
@@ -208,4 +246,41 @@ export function generateSuggestion(call: Call, daysPending: number): Suggestion 
     daysPending,
     contractValue,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Month helpers for 6-month data views
+// ---------------------------------------------------------------------------
+
+export function getCallMonth(c: Call): string {
+  const raw = c.saveDateTime || c.importDate || c.meetingDate || '';
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+export function getMonthLabel(key: string): string {
+  const [y, m] = key.split('-').map(Number);
+  const d = new Date(y, m - 1, 1);
+  return d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+}
+
+export function getLast6Months(): string[] {
+  const now = new Date();
+  const months: string[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+  return months;
+}
+
+export function getCurrentMonth(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+export function getMRR(c: Call): number {
+  return parseFloat(c.monthlySalesPrice) || 0;
 }

@@ -26,15 +26,16 @@ async function writeWorkflowData(data: EmailWorkflowData): Promise<void> {
 }
 
 interface ActionBody {
-  action: 'send' | 'archive' | 'snooze';
+  action: 'send' | 'archive' | 'snooze' | 'save_draft';
   emailId?: string;
   emailIds?: string[];
   snoozeUntil?: string;
+  draftBody?: string;
 }
 
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as ActionBody;
-  const { action, emailId, emailIds, snoozeUntil } = body;
+  const { action, emailId, emailIds, snoozeUntil, draftBody } = body;
 
   if (!action) {
     return NextResponse.json({ error: 'action is required' }, { status: 400 });
@@ -86,6 +87,13 @@ export async function POST(request: NextRequest) {
           queuedAt: now,
         });
         break;
+      case 'save_draft':
+        if (!email.draft) {
+          email.draft = { body: '', tone: 'value-first', strategy: '', createdAt: now };
+        }
+        email.draft.body = draftBody ?? email.draft.body;
+        results.push({ id, newStatus: email.status });
+        continue;
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
     }

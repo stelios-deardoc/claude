@@ -151,5 +151,14 @@ export function processImportRow(row: string[], mapping: Record<string, number>)
     cancellationStage: get('cancellationStage'),
     cancellationSubReason: get('cancellationSubReason'),
     saveSubReason: get('saveSubReason'),
+    refundAmount: '',
+    refundDate: '',
+    contractSwap: '',
+    contractLength: '',
+    paymentMethod: '',
+    relaunch: '',
+    relaunchDate: '',
+    dateChanged: '',
+    accountingNotes: '',
   };
 }

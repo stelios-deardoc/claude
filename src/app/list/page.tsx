@@ -2,16 +2,35 @@
 
 import React, { useState, useMemo } from 'react';
 import { useCallTracker } from '@/lib/store';
-import { categorizeStatus, getStandingCategory, hasGuaranteeIssue, getInitials } from '@/lib/call-utils';
+import { categorizeStatus, getStandingCategory, hasGuaranteeIssue, getInitials, getCallMonth, getMonthLabel, getLast6Months, getCurrentMonth } from '@/lib/call-utils';
 import type { Call, SortOption } from '@/lib/types';
 
 export default function ListPage() {
   const { calls, openCallModal } = useCallTracker();
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const months = useMemo(() => getLast6Months(), []);
+  const currentMonth = useMemo(() => getCurrentMonth(), []);
 
   const filteredAndSorted = useMemo(() => {
-    let filtered = calls.filter((c: Call) => {
+    let filtered = [...calls];
+
+    // Month filter
+    if (selectedMonth !== 'all') {
+      filtered = filtered.filter(c => getCallMonth(c) === selectedMonth);
+    }
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(c => {
+        const searchable = [c.accountName, c.contactName, c.notes, c.todoNotes, c.accountingNotes || ''].join(' ').toLowerCase();
+        return searchable.includes(q);
+      });
+    }
+
+    filtered = filtered.filter((c: Call) => {
       if (!filterStatus) return true;
       const category = categorizeStatus(c.saveStatus, c.saveType);
       const standing = getStandingCategory(c.paymentStanding);
@@ -56,7 +75,7 @@ export default function ListPage() {
     });
 
     return filtered;
-  }, [calls, filterStatus, sortBy]);
+  }, [calls, filterStatus, sortBy, searchQuery, selectedMonth]);
 
   const getCategoryBadgeClass = (category: string) => {
     switch (category) {
@@ -75,10 +94,53 @@ export default function ListPage() {
 
   return (
     <div style={{ padding: '24px' }}>
+      {/* Month filter pill bar */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        <button onClick={() => setSelectedMonth('all')} style={{
+          padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+          border: selectedMonth === 'all' ? '1px solid #3b82f6' : '1px solid #334155',
+          background: selectedMonth === 'all' ? 'rgba(59,130,246,0.15)' : 'transparent',
+          color: selectedMonth === 'all' ? '#3b82f6' : '#64748b', cursor: 'pointer',
+        }}>All Time</button>
+        {months.map(m => (
+          <button key={m} onClick={() => setSelectedMonth(m)} style={{
+            padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+            border: selectedMonth === m ? '1px solid #3b82f6' : '1px solid #334155',
+            background: selectedMonth === m ? 'rgba(59,130,246,0.15)' : 'transparent',
+            color: selectedMonth === m ? '#3b82f6' : '#64748b', cursor: 'pointer',
+          }}>
+            {getMonthLabel(m)}{m === currentMonth ? ' *' : ''}
+          </button>
+        ))}
+      </div>
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#f1f5f9' }}>All Saves</h1>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>All Saves</h1>
+          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>
+            {selectedMonth === 'all'
+              ? `${filteredAndSorted.length} calls`
+              : `${filteredAndSorted.length} of ${calls.length} calls - ${getMonthLabel(selectedMonth)}`}
+          </div>
+        </div>
         <div style={{ display: 'flex', gap: '12px' }}>
+          <input
+            type="text"
+            placeholder="Search names, notes..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{
+              background: '#0f172a',
+              border: '1px solid #334155',
+              borderRadius: 6,
+              color: 'white',
+              padding: '8px 12px',
+              fontSize: 14,
+              flex: 1,
+              minWidth: 200,
+            }}
+          />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}

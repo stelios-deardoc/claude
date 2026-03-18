@@ -6,9 +6,9 @@ import { PRIORITY_CONFIG, STATUS_CONFIG, getSenderName, getRelativeTime, getSnoo
 
 interface EmailDetailProps {
   email: ProcessedEmail;
-  onSend: (id: string) => void;
   onArchive: (id: string) => void;
   onSnooze: (id: string, until: string) => void;
+  onSaveDraft: (id: string, body: string) => void;
 }
 
 function AccordionSection({ title, icon, children, defaultOpen = false }: { title: string; icon: string; children: React.ReactNode; defaultOpen?: boolean }) {
@@ -30,9 +30,20 @@ function AccordionSection({ title, icon, children, defaultOpen = false }: { titl
   );
 }
 
-export default function EmailDetail({ email, onSend, onArchive, onSnooze }: EmailDetailProps) {
+export default function EmailDetail({ email, onArchive, onSnooze, onSaveDraft }: EmailDetailProps) {
   const [showSnoozeMenu, setShowSnoozeMenu] = useState(false);
   const [draftText, setDraftText] = useState(email.draft?.body || '');
+  const [draftSaved, setDraftSaved] = useState(false);
+
+  const gmailDraftUrl = email.gmailDraftId
+    ? `https://mail.google.com/mail/u/0/#drafts/${email.gmailDraftId}`
+    : 'https://mail.google.com/mail/u/0/#drafts';
+
+  const handleSaveDraft = () => {
+    onSaveDraft(email.id, draftText);
+    setDraftSaved(true);
+    setTimeout(() => setDraftSaved(false), 2000);
+  };
 
   const priorityConf = PRIORITY_CONFIG[email.priority];
   const statusConf = STATUS_CONFIG[email.status];
@@ -178,19 +189,19 @@ export default function EmailDetail({ email, onSend, onArchive, onSnooze }: Emai
       <div style={{ padding: '16px', borderTop: '1px solid #334155', display: 'flex', gap: '8px', flexWrap: 'wrap', position: 'sticky', bottom: 0, background: '#0f172a' }}>
         {email.status !== 'sent' && email.status !== 'archived' && (
           <>
-            {email.gmailDraftId && (
+            {email.draft && (
               <button
-                onClick={() => onSend(email.id)}
-                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                onClick={handleSaveDraft}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #334155', background: draftSaved ? '#14532d' : '#1e293b', color: draftSaved ? '#86efac' : '#e2e8f0', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s' }}
               >
-                Approve & Send
+                {draftSaved ? 'Saved' : 'Save Draft'}
               </button>
             )}
             <button
-              onClick={() => window.open('https://mail.google.com/mail/u/0/#drafts', '_blank')}
-              style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #334155', background: '#1e293b', color: '#e2e8f0', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
+              onClick={() => window.open(gmailDraftUrl, '_blank')}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
             >
-              Edit in Gmail
+              Open in Gmail
             </button>
             <div style={{ position: 'relative' }}>
               <button

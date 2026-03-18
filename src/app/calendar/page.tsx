@@ -1,38 +1,54 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useCallTracker } from '@/lib/store';
-import { categorizeStatus, parseDate } from '@/lib/call-utils';
-import { Call } from '@/lib/types';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface CalendarEvent {
+  id: string;
+  summary: string;
+  start: string;
+  end: string;
+  attendees: string[];
+  hangoutLink: string;
+}
+
+interface DecisionInfo {
+  decision: string;
+  docUrl: string;
+  transcriptSource: string;
+}
+
+interface DayEvent extends CalendarEvent {
+  decisionInfo?: DecisionInfo;
+  isClientMeeting: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const STATUS_COLORS: Record<string, string> = {
-  saved: '#22c55e',
-  lost: '#ef4444',
-  pending: '#f59e0b',
-  other: '#64748b',
+const DECISION_COLORS: Record<string, string> = {
+  SAVED: '#22c55e',
+  LOST: '#ef4444',
+  PENDING: '#f59e0b',
+  UNKNOWN: '#64748b',
 };
 
-function getCallDate(call: Call): string | null {
-  const raw = call.saveDateTime || call.meetingDate || '';
-  const parsed = parseDate(raw);
-  if (!parsed) return null;
-  const d = new Date(parsed);
-  if (isNaN(d.getTime())) return null;
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-}
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function getCalendarDays(year: number, month: number): Date[] {
   const firstDay = new Date(year, month, 1);
   const startOffset = firstDay.getDay();
   const days: Date[] = [];
   for (let i = 0; i < 42; i++) {
-    const d = new Date(year, month, 1 - startOffset + i);
-    days.push(d);
+    days.push(new Date(year, month, 1 - startOffset + i));
   }
   return days;
 }
@@ -44,247 +60,403 @@ function formatDateKey(d: Date): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function getStatusColor(call: Call): string {
-  const status = categorizeStatus(call.saveStatus, call.saveType);
-  if (status === 'saved') return STATUS_COLORS.saved;
-  if (status === 'lost') return STATUS_COLORS.lost;
-  if (status === 'pending') return STATUS_COLORS.pending;
-  return STATUS_COLORS.other;
+function extractClientName(summary: string): string {
+  const parts = summary.split(' and ');
+  if (parts.length >= 2) {
+    const nonStelios = parts.find((p) => !p.toLowerCase().includes('stelios'));
+    return nonStelios?.trim() || parts[0].trim();
+  }
+  return summary;
 }
 
+function getEventDateKey(start: string): string {
+  // Handle both datetime and date-only formats
+  if (start.includes('T')) {
+    const d = new Date(start);
+    return formatDateKey(d);
+  }
+  return start; // already YYYY-MM-DD
+}
+
+function getEventTime(start: string): string {
+  if (!start.includes('T')) return '';
+  const d = new Date(start);
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function getChipColor(evt: DayEvent): string {
+  if (evt.decisionInfo) {
+    return DECISION_COLORS[evt.decisionInfo.decision.toUpperCase()] || '#64748b';
+  }
+  if (evt.isClientMeeting) return '#3b82f6'; // blue for client meetings
+  return '#475569'; // gray for internal
+}
+
+function getChipBg(evt: DayEvent): string {
+  const color = getChipColor(evt);
+  return color + '30'; // 30 = ~19% opacity hex
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export default function CalendarPage() {
-  const { calls, openCallModal } = useCallTracker();
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [decisionMap, setDecisionMap] = useState<Record<string, DecisionInfo>>({});
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const initialized = useRef(false);
 
-  // Auto-navigate to the month of the most recent call on first render
-  useEffect(() => {
-    if (initialized.current || !calls || calls.length === 0) return;
-    initialized.current = true;
+  const fetchData = useCallback(async () => {
+    try {
+      const res = await fetch('/api/calendar', { cache: 'no-store' });
+      if (!res.ok) return;
+      const json = await res.json();
+      setEvents(json.calendarEvents || []);
+      setDecisionMap(json.decisionMap || {});
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    let mostRecent: Date | null = null;
-    for (const c of calls) {
-      const raw = c.saveDateTime || c.meetingDate || '';
-      const parsed = parseDate(raw);
-      if (!parsed) continue;
-      const d = new Date(parsed);
-      if (isNaN(d.getTime())) continue;
-      if (!mostRecent || d > mostRecent) {
-        mostRecent = d;
-      }
-    }
-    if (mostRecent) {
-      setCurrentMonth(new Date(mostRecent.getFullYear(), mostRecent.getMonth(), 1));
-    }
-  }, [calls]);
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  // Auto-navigate to current month or month with most recent client event
+  useEffect(() => {
+    if (initialized.current || events.length === 0) return;
+    initialized.current = true;
+    setCurrentMonth(new Date());
+  }, [events]);
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
   const days = getCalendarDays(year, month);
   const today = formatDateKey(new Date());
-
   const monthLabel = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  // Build a map of date -> calls
-  const callsByDate: Record<string, Call[]> = {};
-  if (calls) {
-    for (const call of calls) {
-      const saveDateKey = call.saveDateTime ? parseDate(call.saveDateTime) : '';
-      const meetDateKey = call.meetingDate ? parseDate(call.meetingDate) : '';
-      const keys = new Set<string>();
-      if (saveDateKey) keys.add(saveDateKey);
-      if (meetDateKey) keys.add(meetDateKey);
-      for (const key of keys) {
-        if (!callsByDate[key]) callsByDate[key] = [];
-        if (!callsByDate[key].find((c) => c.id === call.id)) {
-          callsByDate[key].push(call);
-        }
-      }
-    }
+  // Build map of date -> events
+  const eventsByDate: Record<string, DayEvent[]> = {};
+  for (const evt of events) {
+    const dateKey = getEventDateKey(evt.start);
+    const dayEvt: DayEvent = {
+      ...evt,
+      decisionInfo: decisionMap[evt.id],
+      isClientMeeting: evt.attendees.length > 0,
+    };
+    if (!eventsByDate[dateKey]) eventsByDate[dateKey] = [];
+    eventsByDate[dateKey].push(dayEvt);
+  }
+
+  // Sort events within each day by start time
+  for (const key of Object.keys(eventsByDate)) {
+    eventsByDate[key].sort((a, b) => a.start.localeCompare(b.start));
   }
 
   function navigateMonth(offset: number) {
     setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
+    setSelectedDay(null);
   }
 
   function goToToday() {
     const now = new Date();
     setCurrentMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+    setSelectedDay(formatDateKey(now));
+  }
+
+  // Selected day's events
+  const selectedEvents = selectedDay ? (eventsByDate[selectedDay] || []) : [];
+
+  // Stats
+  const clientMeetingsThisMonth = Object.entries(eventsByDate)
+    .filter(([key]) => key.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`))
+    .flatMap(([, evts]) => evts.filter((e) => e.isClientMeeting));
+  const savedThisMonth = clientMeetingsThisMonth.filter((e) => e.decisionInfo?.decision === 'SAVED').length;
+  const lostThisMonth = clientMeetingsThisMonth.filter((e) => e.decisionInfo?.decision === 'LOST').length;
+  const pendingThisMonth = clientMeetingsThisMonth.filter((e) => {
+    const d = e.decisionInfo?.decision?.toUpperCase();
+    return d && d !== 'SAVED' && d !== 'LOST';
+  }).length;
+  const unprocessed = clientMeetingsThisMonth.filter((e) => !e.decisionInfo).length;
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 16 }}>
+        Loading calendar...
+      </div>
+    );
   }
 
   return (
     <div style={{ padding: 24 }}>
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 24,
-        }}
-      >
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Calendar</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Calendar</h1>
+          <p style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 0' }}>
+            {clientMeetingsThisMonth.length} client meetings this month
+          </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18, fontWeight: 600 }}>{monthLabel}</span>
-          <button
-            onClick={() => navigateMonth(-1)}
-            style={{
-              background: '#1e293b',
-              border: '1px solid #334155',
-              color: '#e2e8f0',
-              borderRadius: 6,
-              padding: '6px 12px',
-              cursor: 'pointer',
-              fontSize: 14,
-            }}
-          >
-            Prev
-          </button>
-          <button
-            onClick={goToToday}
-            style={{
-              background: '#1e293b',
-              border: '1px solid #334155',
-              color: '#e2e8f0',
-              borderRadius: 6,
-              padding: '6px 12px',
-              cursor: 'pointer',
-              fontSize: 14,
-            }}
-          >
-            Today
-          </button>
-          <button
-            onClick={() => navigateMonth(1)}
-            style={{
-              background: '#1e293b',
-              border: '1px solid #334155',
-              color: '#e2e8f0',
-              borderRadius: 6,
-              padding: '6px 12px',
-              cursor: 'pointer',
-              fontSize: 14,
-            }}
-          >
-            Next
-          </button>
+          <button onClick={() => navigateMonth(-1)} style={navBtnStyle}>Prev</button>
+          <button onClick={goToToday} style={{ ...navBtnStyle, background: 'var(--accent)', border: '1px solid var(--accent)' }}>Today</button>
+          <button onClick={() => navigateMonth(1)} style={navBtnStyle}>Next</button>
         </div>
       </div>
 
-      {/* Day-of-week headers */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(7, 1fr)',
-          gap: 1,
-          marginBottom: 4,
-        }}
-      >
-        {DAY_NAMES.map((name) => (
-          <div
-            key={name}
-            style={{
-              textAlign: 'center',
-              fontSize: 12,
-              fontWeight: 600,
-              color: '#94a3b8',
-              padding: '8px 0',
-            }}
-          >
-            {name}
-          </div>
-        ))}
+      {/* Month Stats Bar */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+        <StatPill label="Saved" count={savedThisMonth} color="var(--success)" />
+        <StatPill label="Lost" count={lostThisMonth} color="var(--danger)" />
+        <StatPill label="Pending" count={pendingThisMonth} color="var(--warning)" />
+        <StatPill label="Unprocessed" count={unprocessed} color="var(--muted)" />
       </div>
 
-      {/* Calendar grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(7, 1fr)',
-          gap: 1,
-        }}
-      >
-        {days.map((day, idx) => {
-          const dateKey = formatDateKey(day);
-          const isCurrentMonth = day.getMonth() === month;
-          const isToday = dateKey === today;
-          const dayCalls = callsByDate[dateKey] || [];
-          const visibleCalls = dayCalls.slice(0, 3);
-          const overflow = dayCalls.length - 3;
-
-          return (
-            <div
-              key={idx}
-              style={{
-                background: '#0f172a',
-                border: '1px solid #1e293b',
-                minHeight: 100,
-                padding: 6,
-                opacity: isCurrentMonth ? 1 : 0.3,
-                position: 'relative',
-              }}
-            >
-              {/* Day number */}
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 28,
-                  height: 28,
-                  borderRadius: '50%',
-                  fontSize: 13,
-                  fontWeight: isToday ? 700 : 400,
-                  color: isToday ? '#3b82f6' : '#cbd5e1',
-                  border: isToday ? '2px solid #3b82f6' : 'none',
-                  marginBottom: 4,
-                }}
-              >
-                {day.getDate()}
+      <div style={{ display: 'grid', gridTemplateColumns: selectedDay ? '1fr 360px' : '1fr', gap: 20 }}>
+        {/* Calendar Grid */}
+        <div>
+          {/* Day headers */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, marginBottom: 4 }}>
+            {DAY_NAMES.map((name) => (
+              <div key={name} style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#94a3b8', padding: '8px 0' }}>
+                {name}
               </div>
+            ))}
+          </div>
 
-              {/* Call chips */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {visibleCalls.map((call) => (
+          {/* Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 }}>
+            {days.map((day, idx) => {
+              const dateKey = formatDateKey(day);
+              const isCurrentMonth = day.getMonth() === month;
+              const isToday = dateKey === today;
+              const isSelected = dateKey === selectedDay;
+              const dayEvents = eventsByDate[dateKey] || [];
+              const clientEvents = dayEvents.filter((e) => e.isClientMeeting);
+              const visibleEvents = clientEvents.slice(0, 3);
+              const overflow = clientEvents.length - 3;
+
+              return (
+                <div
+                  key={idx}
+                  onClick={() => setSelectedDay(isSelected ? null : dateKey)}
+                  style={{
+                    background: isSelected ? '#1e293b' : '#0f172a',
+                    border: isSelected ? '2px solid var(--accent)' : isToday ? '2px solid #334155' : '1px solid #1e293b',
+                    minHeight: 100,
+                    padding: 6,
+                    opacity: isCurrentMonth ? 1 : 0.3,
+                    cursor: 'pointer',
+                    borderRadius: 4,
+                    transition: 'background 0.1s',
+                  }}
+                >
+                  {/* Day number */}
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 28, height: 28, borderRadius: '50%',
+                    fontSize: 13, fontWeight: isToday ? 700 : 400,
+                    color: isToday ? '#fff' : '#cbd5e1',
+                    background: isToday ? 'var(--accent)' : 'transparent',
+                    marginBottom: 4,
+                  }}>
+                    {day.getDate()}
+                  </div>
+
+                  {/* Event chips */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {visibleEvents.map((evt) => (
+                      <div
+                        key={evt.id}
+                        style={{
+                          background: getChipBg(evt),
+                          color: getChipColor(evt),
+                          fontSize: 10,
+                          lineHeight: '15px',
+                          padding: '1px 5px',
+                          borderRadius: 4,
+                          borderLeft: `3px solid ${getChipColor(evt)}`,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                        title={evt.summary}
+                      >
+                        {extractClientName(evt.summary)}
+                      </div>
+                    ))}
+                    {/* Internal event count */}
+                    {dayEvents.length > clientEvents.length && (
+                      <div style={{ fontSize: 9, color: '#64748b', paddingLeft: 4 }}>
+                        +{dayEvents.length - clientEvents.length} internal
+                      </div>
+                    )}
+                    {overflow > 0 && (
+                      <div style={{ fontSize: 9, color: '#94a3b8', paddingLeft: 4 }}>
+                        +{overflow} more
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Legend */}
+          <div style={{ display: 'flex', gap: 16, marginTop: 12, paddingLeft: 4 }}>
+            <LegendItem color="#3b82f6" label="Client Meeting" />
+            <LegendItem color="#22c55e" label="Saved" />
+            <LegendItem color="#ef4444" label="Lost" />
+            <LegendItem color="#f59e0b" label="Pending" />
+            <LegendItem color="#475569" label="Internal" />
+          </div>
+        </div>
+
+        {/* Day Detail Panel */}
+        {selectedDay && (
+          <div className="card" style={{ padding: 20, height: 'fit-content', maxHeight: 'calc(100vh - 160px)', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
+                {new Date(selectedDay + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </h3>
+              <button onClick={() => setSelectedDay(null)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 18 }}>x</button>
+            </div>
+
+            {selectedEvents.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--muted)', fontSize: 13 }}>No events</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {selectedEvents.map((evt) => (
                   <div
-                    key={call.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openCallModal(call.id);
-                    }}
+                    key={evt.id}
                     style={{
-                      background: getStatusColor(call),
-                      color: '#fff',
-                      fontSize: 11,
-                      lineHeight: '16px',
-                      padding: '1px 6px',
+                      padding: 12,
+                      background: '#0f172a',
                       borderRadius: 8,
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
+                      borderLeft: `4px solid ${getChipColor(evt)}`,
                     }}
-                    title={call.accountName || call.id}
                   >
-                    {call.accountName || call.id}
+                    {/* Time + Name */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      {getEventTime(evt.start) && (
+                        <span style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600, minWidth: 65 }}>
+                          {getEventTime(evt.start)}
+                        </span>
+                      )}
+                      <span style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>
+                        {evt.isClientMeeting ? extractClientName(evt.summary) : evt.summary}
+                      </span>
+                    </div>
+
+                    {/* Decision badge */}
+                    {evt.decisionInfo && (
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                        <span style={{
+                          padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                          background: (DECISION_COLORS[evt.decisionInfo.decision.toUpperCase()] || '#64748b') + '25',
+                          color: DECISION_COLORS[evt.decisionInfo.decision.toUpperCase()] || '#64748b',
+                        }}>
+                          {evt.decisionInfo.decision}
+                        </span>
+                        <span style={{
+                          padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                          background: 'rgba(59,130,246,0.15)', color: 'var(--accent)',
+                        }}>
+                          {evt.decisionInfo.transcriptSource === 'none' ? 'No Transcript' : evt.decisionInfo.transcriptSource}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Attendees */}
+                    {evt.attendees.length > 0 && (
+                      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
+                        {evt.attendees.join(', ')}
+                      </div>
+                    )}
+
+                    {/* Links */}
+                    <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                      {evt.decisionInfo?.docUrl && (
+                        <a
+                          href={evt.decisionInfo.docUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                            background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)',
+                            color: 'var(--accent)', textDecoration: 'none',
+                          }}
+                        >
+                          Post-Call Doc
+                        </a>
+                      )}
+                      {evt.hangoutLink && (
+                        <a
+                          href={evt.hangoutLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                            background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
+                            color: 'var(--success)', textDecoration: 'none',
+                          }}
+                        >
+                          Join Call
+                        </a>
+                      )}
+                    </div>
                   </div>
                 ))}
-                {overflow > 0 && (
-                  <div
-                    style={{
-                      fontSize: 10,
-                      color: '#94a3b8',
-                      paddingLeft: 4,
-                    }}
-                  >
-                    +{overflow} more
-                  </div>
-                )}
               </div>
-            </div>
-          );
-        })}
+            )}
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+const navBtnStyle: React.CSSProperties = {
+  background: '#1e293b',
+  border: '1px solid #334155',
+  color: '#e2e8f0',
+  borderRadius: 6,
+  padding: '6px 12px',
+  cursor: 'pointer',
+  fontSize: 14,
+};
+
+function StatPill({ label, count, color }: { label: string; count: number; color: string }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 6,
+      padding: '6px 14px', background: color + '15', borderRadius: 20,
+      border: `1px solid ${color}30`,
+    }}>
+      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
+      <span style={{ fontSize: 13, fontWeight: 600, color }}>{count}</span>
+      <span style={{ fontSize: 12, color: 'var(--muted)' }}>{label}</span>
+    </div>
+  );
+}
+
+function LegendItem({ color, label }: { color: string; label: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
+      <span style={{ fontSize: 11, color: 'var(--muted)' }}>{label}</span>
     </div>
   );
 }

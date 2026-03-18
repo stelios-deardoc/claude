@@ -7,6 +7,7 @@ import {
   getContractValue,
   getStandingCategory,
   hasGuaranteeIssue,
+  hasAccountingChanges,
   getInitials,
   parseDate,
   generateId,
@@ -29,6 +30,15 @@ interface FormState {
   meetingDate: string;
   missedGuaranteeReasons: string;
   notes: string;
+  refundAmount: string;
+  refundDate: string;
+  contractSwap: string;
+  contractLength: string;
+  paymentMethod: string;
+  relaunch: string;
+  relaunchDate: string;
+  dateChanged: string;
+  accountingNotes: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -43,6 +53,15 @@ const EMPTY_FORM: FormState = {
   meetingDate: '',
   missedGuaranteeReasons: '',
   notes: '',
+  refundAmount: '',
+  refundDate: '',
+  contractSwap: '',
+  contractLength: '',
+  paymentMethod: '',
+  relaunch: '',
+  relaunchDate: '',
+  dateChanged: '',
+  accountingNotes: '',
 };
 
 function formFromCall(call: Call): FormState {
@@ -58,6 +77,15 @@ function formFromCall(call: Call): FormState {
     meetingDate: call.meetingDate ? parseDate(call.meetingDate) : '',
     missedGuaranteeReasons: call.missedGuaranteeReasons || '',
     notes: call.notes || '',
+    refundAmount: call.refundAmount || '',
+    refundDate: call.refundDate || '',
+    contractSwap: call.contractSwap || '',
+    contractLength: call.contractLength || '',
+    paymentMethod: call.paymentMethod || '',
+    relaunch: call.relaunch || '',
+    relaunchDate: call.relaunchDate || '',
+    dateChanged: call.dateChanged || '',
+    accountingNotes: call.accountingNotes || '',
   };
 }
 
@@ -169,6 +197,15 @@ export default function CallModal() {
         meetingDate: form.meetingDate,
         missedGuaranteeReasons: form.missedGuaranteeReasons,
         notes: form.notes,
+        refundAmount: form.refundAmount,
+        refundDate: form.refundDate,
+        contractSwap: form.contractSwap,
+        contractLength: form.contractLength,
+        paymentMethod: form.paymentMethod,
+        relaunch: form.relaunch,
+        relaunchDate: form.relaunchDate,
+        dateChanged: form.dateChanged,
+        accountingNotes: form.accountingNotes,
       });
       setMode('view');
     } else {
@@ -196,6 +233,15 @@ export default function CallModal() {
         cancellationStage: '',
         cancellationSubReason: '',
         saveSubReason: '',
+        refundAmount: form.refundAmount,
+        refundDate: form.refundDate,
+        contractSwap: form.contractSwap,
+        contractLength: form.contractLength,
+        paymentMethod: form.paymentMethod,
+        relaunch: form.relaunch,
+        relaunchDate: form.relaunchDate,
+        dateChanged: form.dateChanged,
+        accountingNotes: form.accountingNotes,
       });
       closeCallModal();
     }
@@ -253,7 +299,7 @@ export default function CallModal() {
           borderRadius: 12,
           padding: 24,
           width: '100%',
-          maxWidth: 640,
+          maxWidth: 720,
           maxHeight: '90vh',
           overflowY: 'auto',
           color: '#e2e8f0',
@@ -413,6 +459,72 @@ export default function CallModal() {
               </>
             )}
 
+            {/* Accounting Changes section */}
+            {hasAccountingChanges(call) && (
+              <>
+                <SectionHeading>Accounting Changes</SectionHeading>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                  {call.refundAmount && (
+                    <DetailRow label="Refund Amount" value={formatCurrency(call.refundAmount)} />
+                  )}
+                  {call.refundDate && (
+                    <DetailRow label="Refund Date" value={formatDate(call.refundDate)} />
+                  )}
+                  {call.contractSwap && (
+                    <div>
+                      <div style={{ fontSize: 12, color: '#94a3b8' }}>Contract Swap</div>
+                      <span style={{
+                        display: 'inline-block',
+                        background: call.contractSwap === 'Yes' ? '#166534' : '#334155',
+                        padding: '2px 10px',
+                        borderRadius: 9999,
+                        fontSize: 12,
+                        marginTop: 2,
+                      }}>{call.contractSwap}</span>
+                    </div>
+                  )}
+                  {call.contractLength && (
+                    <DetailRow label="Contract Length" value={call.contractLength} />
+                  )}
+                  {call.paymentMethod && (
+                    <DetailRow label="Payment Method" value={call.paymentMethod} />
+                  )}
+                  {call.relaunch && (
+                    <div>
+                      <div style={{ fontSize: 12, color: '#94a3b8' }}>Relaunch</div>
+                      <span style={{
+                        display: 'inline-block',
+                        background: call.relaunch === 'Yes' ? '#166534' : '#334155',
+                        padding: '2px 10px',
+                        borderRadius: 9999,
+                        fontSize: 12,
+                        marginTop: 2,
+                      }}>{call.relaunch}</span>
+                    </div>
+                  )}
+                  {call.relaunchDate && (
+                    <DetailRow label="Relaunch Date" value={formatDate(call.relaunchDate)} />
+                  )}
+                  {call.dateChanged && (
+                    <DetailRow label="Date Changed" value={formatDate(call.dateChanged)} />
+                  )}
+                </div>
+                {call.accountingNotes && (
+                  <div style={{
+                    background: '#0f172a',
+                    borderRadius: 8,
+                    padding: 12,
+                    fontSize: 14,
+                    whiteSpace: 'pre-wrap',
+                    marginBottom: 8,
+                    lineHeight: 1.5,
+                  }}>
+                    {call.accountingNotes}
+                  </div>
+                )}
+              </>
+            )}
+
             {/* Actions */}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
               <ModalButton variant="ghost" onClick={closeCallModal}>
@@ -532,6 +644,89 @@ export default function CallModal() {
                 value={form.notes}
                 onChange={handleInputChange}
                 rows={4}
+                style={{
+                  width: '100%',
+                  background: '#0f172a',
+                  border: '1px solid #334155',
+                  borderRadius: 6,
+                  color: 'white',
+                  padding: '8px 12px',
+                  fontSize: 14,
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                }}
+              />
+            </div>
+
+            {/* Accounting Changes */}
+            <SectionHeading>Accounting Changes</SectionHeading>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <FormField
+                label="Refund Amount"
+                name="refundAmount"
+                value={form.refundAmount}
+                onChange={handleInputChange}
+                type="number"
+              />
+              <FormField
+                label="Refund Date"
+                name="refundDate"
+                value={form.refundDate}
+                onChange={handleInputChange}
+                type="date"
+              />
+              <FormSelect
+                label="Contract Swap"
+                name="contractSwap"
+                value={form.contractSwap}
+                onChange={handleInputChange}
+                options={['', 'Yes', 'No']}
+              />
+              <FormSelect
+                label="Contract Length"
+                name="contractLength"
+                value={form.contractLength}
+                onChange={handleInputChange}
+                options={['', '12 months', '24 months', '36 months', 'Monthly', 'Semi-Annual']}
+              />
+              <FormSelect
+                label="Payment Method"
+                name="paymentMethod"
+                value={form.paymentMethod}
+                onChange={handleInputChange}
+                options={['', 'Credit Card', 'ACH', 'Check']}
+              />
+              <FormSelect
+                label="Relaunch"
+                name="relaunch"
+                value={form.relaunch}
+                onChange={handleInputChange}
+                options={['', 'Yes', 'No']}
+              />
+              <FormField
+                label="Relaunch Date"
+                name="relaunchDate"
+                value={form.relaunchDate}
+                onChange={handleInputChange}
+                type="date"
+              />
+              <FormField
+                label="Date Changed"
+                name="dateChanged"
+                value={form.dateChanged}
+                onChange={handleInputChange}
+                type="date"
+              />
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <label style={{ display: 'block', fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>
+                Accounting Notes
+              </label>
+              <textarea
+                name="accountingNotes"
+                value={form.accountingNotes}
+                onChange={handleInputChange}
+                rows={3}
                 style={{
                   width: '100%',
                   background: '#0f172a',
