@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile, writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { getRedis, KEYS } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
-
-const DATA_PATH = path.resolve(process.cwd(), 'data', 'savedesk.json');
 
 interface ActivityEntry {
   id: string;
@@ -66,19 +63,18 @@ interface SaveDeskData {
   lastSyncedAt?: string;
 }
 
+const DEFAULT_DATA: SaveDeskData = {
+  calls: [],
+  splits: [],
+  todos: [],
+  selectedCdpLevel: 'am1',
+  clawbackAmount: 0,
+};
+
 async function readData(): Promise<SaveDeskData> {
-  try {
-    const raw = await readFile(DATA_PATH, 'utf-8');
-    return JSON.parse(raw) as SaveDeskData;
-  } catch {
-    return {
-      calls: [],
-      splits: [],
-      todos: [],
-      selectedCdpLevel: 'am1',
-      clawbackAmount: 0,
-    };
-  }
+  const redis = getRedis();
+  const data = await redis.get<SaveDeskData>(KEYS.SAVEDESK_DATA);
+  return data ?? DEFAULT_DATA;
 }
 
 function generateId(): string {
@@ -208,8 +204,8 @@ export async function POST(req: NextRequest) {
   // Save
   data.todos = todos;
   data.lastSyncedAt = now;
-  await mkdir(path.dirname(DATA_PATH), { recursive: true });
-  await writeFile(DATA_PATH, JSON.stringify(data, null, 2));
+  const redis = getRedis();
+  await redis.set(KEYS.SAVEDESK_DATA, data);
 
   return NextResponse.json({
     ok: true,

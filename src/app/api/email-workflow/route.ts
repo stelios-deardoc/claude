@@ -1,28 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile, writeFile } from 'fs/promises';
-import path from 'path';
+import { getRedis, KEYS } from '@/lib/db';
 import type { EmailWorkflowData } from '@/lib/types';
-
-const DATA_PATH = path.resolve(process.cwd(), 'data', 'email-workflow.json');
 
 export const dynamic = 'force-dynamic';
 
+const DEFAULT_WORKFLOW: EmailWorkflowData = {
+  lastRunAt: '',
+  lastRunStats: { total: 0, p0: 0, p1: 0, p2: 0, p3: 0, drafted: 0, archived: 0, researchedAccounts: 0 },
+  pendingActions: [],
+  emails: [],
+};
+
 async function readWorkflowData(): Promise<EmailWorkflowData> {
-  try {
-    const raw = await readFile(DATA_PATH, 'utf-8');
-    return JSON.parse(raw) as EmailWorkflowData;
-  } catch {
-    return {
-      lastRunAt: '',
-      lastRunStats: { total: 0, p0: 0, p1: 0, p2: 0, p3: 0, drafted: 0, archived: 0, researchedAccounts: 0 },
-      pendingActions: [],
-      emails: [],
-    };
-  }
+  const redis = getRedis();
+  const data = await redis.get<EmailWorkflowData>(KEYS.EMAIL_WORKFLOW);
+  return data ?? DEFAULT_WORKFLOW;
 }
 
 async function writeWorkflowData(data: EmailWorkflowData): Promise<void> {
-  await writeFile(DATA_PATH, JSON.stringify(data, null, 2), 'utf-8');
+  const redis = getRedis();
+  await redis.set(KEYS.EMAIL_WORKFLOW, data);
 }
 
 export async function GET(request: NextRequest) {

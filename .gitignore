@@ -49,3 +49,4 @@ tmp-*
 
 # claude code local files
 .claude/
+.env*.local

@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readFile, writeFile } from 'fs/promises';
-import path from 'path';
-
-const ACTIONS_PATH = path.resolve(process.cwd(), 'actions-data.json');
+import { getRedis, KEYS } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,21 +25,15 @@ interface ActionsData {
   actions: ActionItem[];
 }
 
-async function readActions(): Promise<ActionsData> {
-  const raw = await readFile(ACTIONS_PATH, 'utf-8');
-  return JSON.parse(raw) as ActionsData;
-}
+const DEFAULT_ACTIONS: ActionsData = {
+  generated: '',
+  actions: [],
+};
 
 export async function GET() {
-  try {
-    const data = await readActions();
-    return NextResponse.json(data);
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to read actions data' },
-      { status: 500 },
-    );
-  }
+  const redis = getRedis();
+  const data = await redis.get<ActionsData>(KEYS.ACTIONS_DATA);
+  return NextResponse.json(data ?? DEFAULT_ACTIONS);
 }
 
 export async function PUT(request: Request) {
@@ -57,7 +48,12 @@ export async function PUT(request: Request) {
       );
     }
 
-    const data = await readActions();
+    const redis = getRedis();
+    const data = await redis.get<ActionsData>(KEYS.ACTIONS_DATA);
+    if (!data) {
+      return NextResponse.json({ error: 'No actions data found' }, { status: 404 });
+    }
+
     const action = data.actions.find((a) => a.id === id);
     if (!action) {
       return NextResponse.json(
@@ -67,7 +63,7 @@ export async function PUT(request: Request) {
     }
 
     action.completed = completed;
-    await writeFile(ACTIONS_PATH, JSON.stringify(data, null, 2), 'utf-8');
+    await redis.set(KEYS.ACTIONS_DATA, data);
 
     return NextResponse.json({ success: true, action });
   } catch {

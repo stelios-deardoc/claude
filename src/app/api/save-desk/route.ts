@@ -1,17 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import path from 'path';
-
-const POST_CALL_STATE_PATH = path.resolve(
-  process.cwd(),
-  '..',
-  'post-call-state.json',
-);
-const ACCOUNT_NOTES_PATH = path.resolve(
-  process.cwd(),
-  '..',
-  'account_notes.md',
-);
+import { getRedis, KEYS } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,21 +22,14 @@ interface PostCallState {
 }
 
 export async function GET() {
-  let postCallState: PostCallState | null = null;
-  let accountNotes: string | null = null;
+  const redis = getRedis();
+  const [postCallState, accountNotes] = await Promise.all([
+    redis.get<PostCallState>(KEYS.POST_CALL_STATE),
+    redis.get<string>(KEYS.ACCOUNT_NOTES),
+  ]);
 
-  try {
-    const raw = await readFile(POST_CALL_STATE_PATH, 'utf-8');
-    postCallState = JSON.parse(raw) as PostCallState;
-  } catch {
-    // file not found or parse error -- return null
-  }
-
-  try {
-    accountNotes = await readFile(ACCOUNT_NOTES_PATH, 'utf-8');
-  } catch {
-    // file not found -- return null
-  }
-
-  return NextResponse.json({ postCallState, accountNotes });
+  return NextResponse.json({
+    postCallState: postCallState ?? null,
+    accountNotes: accountNotes ?? null,
+  });
 }
