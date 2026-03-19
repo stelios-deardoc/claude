@@ -33,6 +33,23 @@
 | 27 | **LOW** | **Tyler Campbell / MBM Chiro** | tyler@mbmchiro.com | Email | Meeting accepted for **April 6 at 3:10pm EDT**. No immediate action needed. | April 6 |
 | 28 | **LOW** | **Daniel Beilin / Fortify Health** | doctordan@fortifyhealth.com | Email | Meeting scheduled for **April 3 at 12:00pm EDT**. No immediate action needed. | April 3 |
 | 29 | **LOW** | **Rod Dahlinger** | hfchiro93@gmail.com | Call (24 min) | Client chose to proceed with cancellation despite remediation offer. Process cancellation per final decision. | Process |
+| 30 | **MODERATE** | **Dr. Robert Watson, DDS** | rwatsondds@aol.com | Call | Firm cancellation. Contract expires **March 25**. Send written instructions for removing chat code, full lead list. Contact HealthGrades for outstanding patient requests. Complete offboarding before contract end. | March 25 |
+| 31 | **MODERATE** | **Dr. Rajiv Bansal** (GI + Complete Care Derm) | dr.rajivbansal@gmail.com | Call | Requesting $5,244 refund for 2-year contract. Disable auto-renewal for dermatology (expires Sept 16). Export CSV leads for both accounts. Send dashboard PDFs. Follow-up meeting Feb 11 at 3:30 PM. | Feb 11 |
+| 32 | **MODERATE** | **Zachary Kordik / Modern Mental Health Chicago** | zkordik@modernmentalhealthchicago.com | Call | Decided not to renew AI product (patient confusion, workflow mismatch). Coordinate with legal on 30-day notice. Follow up next week after practice director returns from vacation. | Next week |
+| 33 | **MODERATE** | **Dr. Manoj Mehta** | manojmehtamd@gmail.com | Call | Terminating contract immediately. Disputed referral definitions (212 claimed vs. returning patients). Send termination confirmation email. Review contract with sales rep Chase. Address billing termination. | Immediate |
+| 34 | **MODERATE** | **Thomas Wegner / A Healthy Smile** | drw@ahealthysmile.com | Call (62 min) | Cancellation not processed due to miscommunication. Submit refund request. Reactivate sponsored profiles. Add video concierge AI + voice AI free. Keep data "on ice" for possible return. | This week |
+| 35 | **MODERATE** | **Shane Gallick / Gallick Chiropractic** | sgallickchiro@gmail.com | Call | Contract renegotiated ($650 to $349/month). Send updated PandaDoc contract + Ginger billing link. Cancel old Ratio processor. Implement AI autodialer free of charge. | This week |
+| 36 | **MODERATE** | **Michelle / Dr. Rajeev Bunzo** | m.scaltsas@aol.com | Call | Spent $11,000+ with poor results. 6 months free service credited. Follow-up meeting with Dr. Bunzo scheduled. Send Zoom invite. | Follow-up meeting TBD |
+| 37 | **MODERATE** | **Brian Pinto / Tiffany Natural Pharmacy** | brian@tiffanynaturalpharmacy.com | Call | Decided against continuing (no efficiency gains, staff still manual). Send calendar invite and recap. Prepare tailored proposal with pricing options. | Follow-up Wed/Thu next week |
+| 38 | **MODERATE** | **Vanessa Sarkauskas / Viridity Med Spa** | vanessa@viriditymedspa.com | Call | Cancellation request due to unmet ROI. 90-day trial extension offered with personal account management. Follow-up meeting Wed 28th at 10 AM Central. | March 28 |
+| 39 | **MOD-LOW** | **Dr. Meredith Scott / Scott Ortho** | mscott@scottortho.net | Call | Trial at $500/month with 90-day referral guarantee (<10 patients = cancel). Send updated contract + Ginger billing link. Relaunch call Thu 29th at 3 PM Central. | March 29 |
+| 40 | **MOD-LOW** | **Navin Pathiyil / Arcola Dental** | info@arcoladental.com | Call | New contract signed with discount + 3 months free. Verify prior price reduction with Alejandra. Add AI video concierge free. Send lead CSV. Coordinate billing update/refund. | This week |
+| 41 | **MOD-LOW** | **Tracy Simon / Dr. Wilson** | tsimon@drwilson.org | Call | Location move transition. 6-month contract extension at no cost. Lead gen paused during move. Onboarding session for practice manager scheduled. | Onboarding TBD |
+| 42 | **MOD-LOW** | **Taylor Jump / Jump 4 Wellness** | taylorjump@jump4wellness.com | Call | Contentious dispute. Service failures, overpromising. Rejected all price reductions/guarantees. Forward meeting info to accounting for cancellation review. | This week |
+| 43 | **MOD-LOW** | **Dr. Michael Miller** | mmillerod@aol.com | Call | Intending to cancel. Monitor for written cancellation notice. Follow up with accounting to avoid collections. Offered $349/month if continuing. | Pending notice |
+| 44 | **LOW** | **Dr. Nate Greenstein / Dr. Nate Chiro** | drnate@drnatechiro.com | Call (120 min) | Retained -- 1-year contract with CareCredit. Send updated contract + billing link. Finalize ACH with Ginger. Schedule relaunch meeting for CareCredit integration. | Ongoing |
+| 45 | **LOW** | **Rahul Vangala / AACMG** | aacmg@hotmail.com | Call | POSITIVE -- 5,658 questions, 205 referrals, 3.5% conversion. No issues. Confirm review call suffices to maintain account. | No action needed |
+| 46 | **LOW** | **Dr. Samir Batniji** | batniji@yahoo.com | Call (63 min) | POSITIVE -- expanding services. 11,000+ questions, 273 referrals. Add staff contacts with editing access. Oversee AI upgrades, SEO blogs, social media automation. Onboarding scheduled. | Onboarding TBD |
 
 ---
 
@@ -49,6 +66,13 @@
 - Sofia Zanzarella / Rehab Resolutions -- 2-year at $425/month
 - Taylor Stillpass / Power Up -- 6-month at $95/month (non-renewal noted)
 - Dr. Seeley / CT Facial Plastic -- Fresh start proposal accepted
+- Dr. Nate Greenstein -- 1-year contract with CareCredit
+- Navin Pathiyil / Arcola Dental -- Discounted rate + 3 months free
+- Shane Gallick / Gallick Chiropractic -- $349/month renegotiated
+- Dr. Meredith Scott / Scott Ortho -- $500/month trial with 90-day guarantee
+- Tracy Simon / Dr. Wilson -- 6-month extension at no cost
+- Dr. Samir Batniji -- Expanding services (positive account)
+- Rahul Vangala / AACMG -- Strong performer, no changes needed
 
 ## Accounts Lost / Cancelling
 - Henry Liang / Clarity Clinic
@@ -57,3 +81,23 @@
 - Dr. Karen Williams
 - Barbara Park
 - Rod Dahlinger
+- Dr. Manoj Mehta
+- Dr. Robert Watson
+- Tyler Yamauchi
+- Taylor Jump
+
+## Accounts Pending Decision
+- Benjamin Lievense (response by Monday)
+- Donell Ramsey / Dr. Koontz (1 week to decide)
+- Allison Loos / Rehab Resources (consulting coordinator)
+- Zachary Kordik / Modern Mental Health (awaiting vacation return)
+- Vanessa Sarkauskas / Viridity Med Spa (90-day trial extension offered)
+- Dr. Rajiv Bansal (follow-up Feb 11)
+- Brian Pinto / Tiffany Natural Pharmacy (follow-up next week)
+- Thomas Wegner / A Healthy Smile (evaluating alternatives)
+- Dr. Michael Miller (pending cancellation notice)
+- Dr. David Fishkin (decision this week)
+- Max Livshetz (reviewing $59/month option)
+- Dr. Ellen Mellow (follow-up early March)
+- Dr. Mouli Patel (reviewing $797/month proposal)
+- Russell Doi (relaunch consultation TBD)
